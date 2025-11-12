@@ -1,0 +1,121 @@
+{
+    "store": {
+        "nome": "EXTRASOFT",
+        "endereco": "",
+        "telefone": "",
+        "email": "contato@cantina.local",
+        "cnpj": "",
+        "hora_funcionamento": {
+            "segunda": "08:00-18:00",
+            "terca": "08:00-18:00",
+            "quarta": "08:00-18:00",
+            "quinta": "08:00-18:00",
+            "sexta": "08:00-18:00",
+            "sabado": "09:00-14:00",
+            "domingo": "fechado"
+        },
+        "logo": "\/uploads\/brand\/_4C0ED095-DD33-4D03-AB58-81F8B6C24CBA__png_1762122545.jpg",
+        "favicon": "\/uploads\/brand\/_62837499-929F-41D0-B3AA-30A32854FCED__png_1762122551.jpg",
+        "tagline": ""
+    },
+    "localizacao": {
+        "fuso": "America\/Sao_Paulo",
+        "moeda": "BRL",
+        "idioma": "pt-BR",
+        "date_format": "d\/m\/Y",
+        "time_format": "H:i"
+    },
+    "financeiro": {
+        "taxa_iva_percent": false,
+        "incluir_impostos": false,
+        "forma_pagamento": {
+            "dinheiro": true,
+            "cartao": true,
+            "pix": true,
+            "boleto": false
+        },
+        "prefixo_nota": "NF-",
+        "nota_automatico": false
+    },
+    "theme": {
+        "mode": "dark",
+        "primary_color": "#31a5d3",
+        "secondary_color": "#d4af37",
+        "custom_css": "",
+        "available_themes": [
+            "light",
+            "dark"
+        ]
+    },
+    "idiomas": {
+        "available": [
+            "pt-BR",
+            "en-US"
+        ],
+        "default": "pt-BR"
+    },
+    "estoque": {
+        "alerta_minimo": "5",
+        "reposicao_automatica": false
+    },
+    "notificacoes": {
+        "email_admin": "contato@cantina.local",
+        "enviar_alertas_email": true,
+        "smtp": {
+            "host": "",
+            "porta": 587,
+            "usuario": "",
+            "senha": ""
+        }
+    },
+    "integracoes": {
+        "stripe": {
+            "enabled": false,
+            "key": ""
+        },
+        "mercadopago": {
+            "enabled": false,
+            "token": ""
+        }
+    },
+    "seguranca": {
+        "forcar_https": false,
+        "forcar_2fa": false,
+        "politica_senha": {
+            "min_length": 8,
+            "require_numbers": true,
+            "require_symbols": false
+        }
+    },
+    "sessao": {
+        "session_timeout_minutes": "60",
+        "session_cookie_secure": true
+    },
+    "backup": {
+        "ultimo_backup": "2025-11-02T22:29:18+00:00",
+        "agendamento": "diario",
+        "retencao_dias": 30
+    },
+    "audit": {
+        "enable_audit_logs": true,
+        "retention_days": "365"
+    },
+    "api": {
+        "enabled": false,
+        "api_key": "",
+        "rate_limit": "1000"
+    },
+    "avancado": {
+        "webhook_url": "",
+        "analytics_id": ""
+    },
+    "email_templates": {
+        "order_confirm_subject": "Pedido confirmado - {order_id}",
+        "order_confirm_body": "Olá {customer_name}, seu pedido {order_id} foi confirmado. Total: {total}"
+    },
+    "maintenance": {
+        "enabled": false,
+        "scheduled_time": "",
+        "message": "O site está em manutenção. Voltamos em breve."
+    }
+}

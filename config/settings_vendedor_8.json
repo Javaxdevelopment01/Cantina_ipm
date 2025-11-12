@@ -1,0 +1,14 @@
+{
+    "theme": {
+        "mode": "dark",
+        "primary_color": "#31a5d3",
+        "secondary_color": "#d4af37"
+    },
+    "store": {
+        "logo": "\/uploads\/brand\/logo_ipm2_1762167681.png",
+        "favicon": "\/uploads\/brand\/_62837499-929F-41D0-B3AA-30A32854FCED__png_1762122551.jpg"
+    },
+    "idiomas": {
+        "default": "pt-BR"
+    }
+}

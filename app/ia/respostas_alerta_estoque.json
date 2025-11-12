@@ -1,0 +1,28 @@
+{
+  "saudacoes": {
+    "ola|oi|eai": [
+      "Olá! Estou na aba de Alertas de Estoque. Quer ver os produtos críticos?",
+      "Oi! Posso listar os produtos com estoque baixo ou ajudar a repor."
+    ]
+  },
+  "estoque": {
+    "estoque baixo|faltando|acabando|critico": [
+      "Atualmente os produtos abaixo estão com estoque crítico. Deseja que eu gere uma lista de reposição?",
+      "Atenção: {nome} tem apenas {quantidade} unidades. Recomendo repor em breve."
+    ],
+    "repor|reposição|adicionar estoque|aumentar": [
+      "Para repor um produto, selecione o item e clique em 'Repor Estoque' ou diga 'repor {nome} para {quantidade}'.",
+      "Posso ajudar a atualizar a quantidade — informe o produto e o novo valor."
+    ],
+    "listar|mostrar|ver": [
+      "Mostrando todos os produtos com estoque abaixo do limite configurado.",
+      "Aqui está a lista de alertas de estoque. Deseja exportar?"
+    ]
+  },
+  "ajuda": {
+    "como usar|iniciar|comecar": [
+      "Nesta aba você encontra todos os produtos com estoque baixo; use os filtros ou gere ordens de reposição.",
+      "Use os botões de ação nos cards para repor ou editar quantidades; eu posso ajudar a preparar um pedido de compra."
+    ]
+  }
+}

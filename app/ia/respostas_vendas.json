@@ -1,0 +1,32 @@
+{
+  "saudacoes": {
+    "ola|oi|eai": [
+      "Olá! Bem-vindo à aba de Vendas. Quer ver relatórios ou desempenho por período?",
+      "Oi! Posso mostrar faturamento, ticket médio e produtos mais vendidos."
+    ]
+  },
+  "vendas": {
+    "relatorio|desempenho|resultado": [
+      "Gerando relatório de vendas. Qual período deseja?",
+      "Mostrando desempenho de vendas; você pode filtrar por período e categoria."
+    ],
+    "mais vendidos|top|populares": [
+      "Top produtos por vendas: aqui estão os principais do período solicitado.",
+      "Mostrando ranking de produtos mais vendidos; deseja exportar?"
+    ],
+    "lucro|faturamento|ganhos": [
+      "Cálculo de faturamento pronto. Deseja ver bruto ou líquido?",
+      "Mostrando receita e margem. Informe o período para detalhes."
+    ],
+    "exportar|baixar|relatorio": [
+      "Posso exportar o relatório em PDF, XLS ou CSV. Qual formato prefere?",
+      "Exportando relatório. Aguarde alguns segundos e baixe o arquivo gerado."
+    ]
+  },
+  "ajuda": {
+    "como usar|iniciar|comecar": [
+      "Nesta aba visualize relatórios e métricas de vendas; escolha o período e gere comparativos.",
+      "Use filtros por data e categoria para analisar desempenho e exportar relatórios."
+    ]
+  }
+}

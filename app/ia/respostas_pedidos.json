@@ -1,0 +1,32 @@
+{
+  "saudacoes": {
+    "ola|oi|eai": [
+      "Olá! Estou na área de Pedidos. Deseja ver os pendentes ou o histórico?",
+      "Oi! Posso listar pedidos por status, data ou cliente."
+    ]
+  },
+  "pedidos": {
+    "pendentes|novos|atender": [
+      "Você tem X pedidos pendentes. Quer que eu liste os detalhes?",
+      "Mostrando pedidos pendentes. Posso marcar algum como atendido."
+    ],
+    "historico|anteriores|passados": [
+      "Gerando histórico de pedidos para o período solicitado.",
+      "Filtre por data ou cliente para ver o histórico detalhado."
+    ],
+    "status|situacao|andamento": [
+      "Cada pedido tem status: pendente, em preparo, concluído ou cancelado. Deseja ver por status?",
+      "Posso filtrar pedidos por status e tempo de espera."
+    ],
+    "atualizar|mudar status|processar": [
+      "Para atualizar o status, informe o número do pedido e o novo status.",
+      "Posso marcar como atendido ou em preparo — informe o pedido."
+    ]
+  },
+  "ajuda": {
+    "como usar|iniciar|comecar": [
+      "Aqui você gerencia pedidos: visualize, filtre e atualize status; acompanhe na fila.",
+      "Use filtros por status e horário para priorizar atendimentos."
+    ]
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "saudacoes": {
+    "ola|oi|hey|eai": [
+      "Olá! Bem-vindo ao Dashboard da Cantina IPM! Como posso ajudar?",
+      "Olá! Estou aqui para ajudar com o gerenciamento da cantina!"
+    ],
+    "bom dia|dia": [
+      "Bom dia! Como posso auxiliar na gestão hoje?",
+      "Bom dia! Pronto para ajudar com suas atividades!"
+    ],
+    "boa tarde|tarde": [
+      "Boa tarde! Em que posso ajudar com o dashboard?",
+      "Boa tarde! Vamos verificar o desempenho da cantina?"
+    ],
+    "boa noite|noite": [
+      "Boa noite! Como posso ajudar com a gestão?",
+      "Boa noite! Vamos analisar os dados do dia?"
+    ]
+  },
+  "dashboard": {
+    "o que posso fazer|ajuda|help|funcoes": [
+      "No dashboard você pode: \n1. Monitorar vendas e estoque em tempo real\n2. Ver alertas de produtos com baixo estoque\n3. Acompanhar pedidos pendentes\n4. Visualizar estatísticas e gráficos\n5. Gerenciar produtos e categorias",
+      "O dashboard oferece:\n- Visão geral do negócio\n- Alertas de estoque\n- Gestão de pedidos\n- Relatórios e análises\n- Cadastro e edição de produtos"
+    ],
+    "onde|como|encontrar": [
+      "No menu superior você encontra:\n- 'Todos os Produtos': lista completa do catálogo\n- 'Alertas de Estoque': produtos que precisam de atenção\n- Utilize os filtros e busca para encontrar itens específicos",
+      "Para navegar no dashboard:\n1. Use o menu superior para alternar entre visões\n2. Os cards mostram informações importantes\n3. Clique nos itens para ver mais detalhes"
+    ]
+  },
+  "estoque": {
+    "estoque baixo|faltando|acabando": [
+      "Para ver produtos com estoque baixo:\n1. Acesse a aba 'Alertas de Estoque'\n2. Os itens em vermelho precisam de atenção urgente\n3. Use o botão 'Repor Estoque' para atualizar as quantidades",
+      "Produtos com estoque crítico aparecem destacados no painel de alertas. Você pode:\n- Ver a quantidade atual\n- Fazer pedido de reposição\n- Definir alertas personalizados"
+    ],
+    "como repor|adicionar|aumentar": [
+      "Para repor o estoque:\n1. Localize o produto no painel\n2. Clique no botão 'Repor Estoque'\n3. Digite a nova quantidade\n4. Confirme a atualização",
+      "Para adicionar estoque:\n- Use o botão de reposição no card do produto\n- Atualize a quantidade disponível\n- O sistema registra automaticamente a movimentação"
+    ],
+    "ver quantidade|consultar|verificar": [
+      "Para consultar o estoque:\n1. Use a busca para encontrar o produto\n2. A quantidade atual aparece no card\n3. O sistema atualiza em tempo real",
+      "Você pode ver o estoque:\n- Na lista geral de produtos\n- No painel de alertas\n- Nos relatórios detalhados"
+    ],
+    "verificar alertas|problemas|criticos": [
+      "Para verificar alertas:\n1. Observe os cards em vermelho\n2. Veja produtos abaixo do mínimo\n3. Confira datas de validade",
+      "O sistema alerta sobre:\n- Estoque baixo\n- Produtos esgotados\n- Itens próximos ao vencimento"
+    ]
+  },
+  "pedidos": {
+    "novos pedidos|pendentes|atender": [
+      "Para ver novos pedidos:\n1. O sistema notifica automaticamente\n2. Acesse a seção de pedidos pendentes\n3. Clique para ver detalhes\n4. Marque como atendido após preparar",
+      "Gestão de pedidos:\n- Notificações em tempo real\n- Lista organizada por horário\n- Detalhes do cliente e itens\n- Opções de status"
+    ],
+    "historico|anteriores|passados": [
+      "Para ver histórico de pedidos:\n1. Acesse a seção de relatórios\n2. Use filtros de data\n3. Exporte dados se necessário",
+      "O histórico mostra:\n- Todos os pedidos realizados\n- Valores e itens\n- Estatísticas de venda\n- Tendências por período"
+    ],
+    "status|situacao|andamento": [
+      "Status dos pedidos:\n- Pendente: aguardando preparo\n- Em preparo: sendo atendido\n- Concluído: entregue ao cliente\n- Cancelado: não realizado",
+      "Acompanhe pedidos por:\n1. Status atual\n2. Tempo de espera\n3. Prioridade\n4. Cliente"
+    ],
+    "atualizar|mudar status|processar": [
+      "Para atualizar pedido:\n1. Encontre na lista\n2. Escolha novo status\n3. Confirme alteração",
+      "Processo de atendimento:\n- Receber notificação\n- Preparar itens\n- Atualizar status\n- Entregar ao cliente"
+    ]
+  },
+  "vendas": {
+    "relatorio|desempenho|resultado": [
+      "Para ver relatórios de venda:\n1. Acesse a seção de relatórios\n2. Escolha o período desejado\n3. Veja gráficos e números\n4. Analise tendências",
+      "Os relatórios mostram:\n- Total de vendas\n- Produtos mais vendidos\n- Média por período\n- Comparativos"
+    ],
+    "mais vendidos|populares|top": [
+      "Produtos mais vendidos aparecem:\n1. No dashboard principal\n2. Em gráficos específicos\n3. Com histórico de vendas",
+      "Análise de popularidade:\n- Ranking de vendas\n- Preferências por horário\n- Sugestões de promoção"
+    ],
+    "lucro|faturamento|ganhos": [
+      "Para ver o faturamento:\n1. Acesse relatórios financeiros\n2. Escolha o período\n3. Veja receitas e custos\n4. Análise de margem",
+      "Dados financeiros mostram:\n- Receita total\n- Custos operacionais\n- Margem de lucro\n- Projeções"
+    ],
+    "exportar|baixar|relatorio": [
+      "Para exportar dados:\n1. Escolha o relatório\n2. Selecione formato\n3. Defina período\n4. Baixe o arquivo",
+      "Formatos disponíveis:\n- PDF para impressão\n- Excel para análise\n- CSV para sistemas"
+    ]
+  },
+  "produtos": {
+    "cadastrar|novo|adicionar": [
+      "Para cadastrar produto:\n1. Clique em 'Novo Produto'\n2. Preencha os dados\n3. Defina preço e estoque\n4. Salve as informações",
+      "No cadastro, informe:\n- Nome e descrição\n- Categoria\n- Preço de venda\n- Estoque inicial"
+    ],
+    "editar|alterar|modificar": [
+      "Para editar produto:\n1. Encontre na lista\n2. Clique em editar\n3. Atualize os dados\n4. Salve alterações",
+      "Você pode modificar:\n- Informações básicas\n- Preços\n- Estoque\n- Categoria"
+    ],
+    "remover|excluir|deletar": [
+      "Para remover produto:\n1. Localize o item\n2. Confirme a exclusão\n3. O sistema mantém histórico",
+      "Atenção ao excluir:\n- Verificar vendas pendentes\n- Manter histórico\n- Confirmar ação"
+    ],
+    "buscar|procurar|encontrar": [
+      "Para localizar produto:\n1. Use a barra de busca\n2. Filtre por categoria\n3. Ordene a lista",
+      "Opções de busca:\n- Por nome\n- Por código\n- Por categoria"
+    ]
+  },
+  "ajuda": {
+    "manual|tutorial|guia": [
+      "Para aprender sobre o sistema:\n1. Acesse o manual online\n2. Veja vídeos tutoriais\n3. Use a ajuda contextual\n4. Pergunte ao suporte",
+      "Recursos de ajuda:\n- Documentação completa\n- Tutoriais passo-a-passo\n- Suporte online\n- FAQ"
+    ],
+    "problemas|erro|bug": [
+      "Se encontrar problemas:\n1. Verifique sua conexão\n2. Atualize a página\n3. Limpe o cache\n4. Contate suporte se persistir",
+      "Resolução de problemas:\n- Reconectar ao sistema\n- Verificar permissões\n- Atualizar navegador\n- Relatar erros"
+    ],
+    "como usar|iniciar|comecar": [
+      "Para começar:\n1. Explore o menu superior\n2. Monitore os alertas\n3. Gerencie pedidos\n4. Acompanhe vendas",
+      "Primeiros passos:\n- Familiarize-se com o layout\n- Verifique notificações\n- Aprenda atalhos\n- Use a busca"
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "saudacoes": {
+    "ola": [
+      "Olá! Bem-vindo à Cantina IPM! Como posso ajudar?",
+      "Olá! É um prazer atender você!"
+    ],
+    "bom_dia": [
+      "Bom dia! Como posso ser útil hoje?",
+      "Bom dia! Espero que esteja tendo um ótimo dia!"
+    ],
+    "boa_tarde": [
+      "Boa tarde! Em que posso ajudar?",
+      "Boa tarde! É um prazer atender você!"
+    ],
+    "boa_noite": [
+      "Boa noite! Como posso ajudar?",
+      "Boa noite! Estou aqui para auxiliar no que precisar!"
+    ]
+  },
+  "produtos": {
+    "estoque_baixo": [
+      "Atenção! O produto {nome} está com estoque baixo. Restam apenas {quantidade} unidades.",
+      "Alerta de estoque: Produto {nome} com apenas {quantidade} unidades disponíveis."
+    ],
+    "recomendacao": [
+      "Baseado nos seus pedidos anteriores, você pode gostar do produto {nome}!",
+      "Que tal experimentar o {nome}? É uma ótima opção!"
+    ],
+    "novidade": [
+      "Temos uma novidade! O produto {nome} acabou de chegar!",
+      "Novo produto disponível: {nome}! Venha conhecer!"
+    ]
+  },
+  "pedidos": {
+    "confirmacao": [
+      "Seu pedido foi confirmado! O número do seu pedido é {numero}.",
+      "Pedido {numero} registrado com sucesso!"
+    ],
+    "preparo": [
+      "Seu pedido {numero} está sendo preparado!",
+      "O pedido {numero} já está na cozinha!"
+    ],
+    "pronto": [
+      "Seu pedido {numero} está pronto para retirada!",
+      "Ótima notícia! O pedido {numero} já pode ser retirado!"
+    ]
+  },
+  "geral": {
+    "ajuda": [
+      "Como posso te ajudar hoje?",
+      "Estou aqui para auxiliar no que precisar!"
+    ],
+    "duvidas": [
+      "Posso ajudar com informações sobre produtos, pedidos ou outras dúvidas!",
+      "Tem alguma dúvida específica? Estou aqui para ajudar!"
+    ],
+    "agradecimento": [
+      "Por nada! Estou sempre à disposição!",
+      "Foi um prazer ajudar! Volte sempre!"
+    ]
+  }
+}

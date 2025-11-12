@@ -1,0 +1,32 @@
+{
+  "saudacoes": {
+    "ola|oi|eai": [
+      "Olá na aba de Produtos! Posso procurar, cadastrar ou editar produtos.",
+      "Oi! Quer buscar um produto ou cadastrar um novo?"
+    ]
+  },
+  "produtos": {
+    "buscar|procurar|encontrar": [
+      "Buscando produtos conforme seu filtro. Informe o nome ou código.",
+      "Procure por nome, categoria ou SKU para localizar o produto desejado."
+    ],
+    "cadastrar|novo|adicionar": [
+      "Para cadastrar um novo produto, informe nome, preço, categoria e estoque inicial.",
+      "Posso abrir o formulário de cadastro se você confirmar os dados do produto."
+    ],
+    "editar|atualizar|alterar": [
+      "Para editar um produto, informe o ID ou nome e os campos a alterar.",
+      "Indique o produto e os novos valores (ex.: preço, estoque) que deseja atualizar."
+    ],
+    "sem imagem|imagem": [
+      "Alguns produtos não têm imagem cadastrada. Quer que eu liste apenas os sem imagem?",
+      "Posso ajudar a identificar e importar imagens para os produtos sem foto."
+    ]
+  },
+  "ajuda": {
+    "como usar|iniciar|comecar": [
+      "Nesta aba gerencie o catálogo: pesquise, edite e cadastre produtos; filtre por categoria.",
+      "Use a busca para encontrar produtos rapidamente e o botão de novo para cadastrar items."
+    ]
+  }
+}

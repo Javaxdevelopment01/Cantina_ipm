@@ -1,0 +1,13 @@
+2025-10-29 23:43:36 - Exceção: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'ipm_cantina.produtos' doesn't exist
+2025-10-29 23:43:36 - Fatal error: Undefined array key "pedido_id" in C:\wamp64\www\cantina_ipm\app\views\Vendedor\pedidos.php on line 99
+2025-10-29 23:43:44 - Exceção: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'ipm_cantina.produtos' doesn't exist
+2025-10-29 23:43:44 - Fatal error: Undefined array key "pedido_id" in C:\wamp64\www\cantina_ipm\app\views\Vendedor\pedidos.php on line 99
+2025-10-29 23:46:53 - Exceção: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '\
+            SELECT pi.*, pr.nome as produto_nome
+            FROM pedido_ite' at line 1
+2025-10-29 23:47:06 - Exceção: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '\
+            SELECT pi.*, pr.nome as produto_nome
+            FROM pedido_ite' at line 1
+2025-10-29 23:47:39 - Exceção: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '\
+            SELECT pi.*, pr.nome as produto_nome
+            FROM pedido_ite' at line 1
