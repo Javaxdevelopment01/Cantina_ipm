@@ -1,0 +1,48 @@
+{
+    "pythonCmd": "C:\\Users\\Leonel JAVAX\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "cmd": "\"C:\\Users\\Leonel JAVAX\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" \"C:\\wamp64\\www\\cantina_ipm\\app\\api\/..\/..\/ia\/yasmin_assistant.py\" \"Sanduíche de queijo\" --vendor --vendor-context \"{ totalPedidos :55, pedidosPendentes :2, totalClientes :50, quantidadeEstoque : 853 , produtosAlerta :[], produtosMaisVendidos :[{ id :6, nome : Batido de frutas , total_vendido : 19 , receita : 3800.00 },{ id :8, nome : Salgadinhos , total_vendido : 8 , receita : 8000.00 },{ id :22, nome : Fanta , total_vendido : 5 , receita : 3000.00 },{ id :24, nome : Gelado , total_vendido : 4 , receita : 2000.00 },{ id :26, nome : Hamburguer , total_vendido : 3 , receita : 3000.00 }], produtoMenorEstoque :{ nome : Fanta , quantidade :9}}\" --audio 2>&1",
+    "disable_functions": "",
+    "vendor_context": {
+        "totalPedidos": 55,
+        "pedidosPendentes": 2,
+        "totalClientes": 50,
+        "quantidadeEstoque": "853",
+        "produtosAlerta": [],
+        "produtosMaisVendidos": [
+            {
+                "id": 6,
+                "nome": "Batido de frutas",
+                "total_vendido": "19",
+                "receita": "3800.00"
+            },
+            {
+                "id": 8,
+                "nome": "Salgadinhos",
+                "total_vendido": "8",
+                "receita": "8000.00"
+            },
+            {
+                "id": 22,
+                "nome": "Fanta",
+                "total_vendido": "5",
+                "receita": "3000.00"
+            },
+            {
+                "id": 24,
+                "nome": "Gelado",
+                "total_vendido": "4",
+                "receita": "2000.00"
+            },
+            {
+                "id": 26,
+                "nome": "Hamburguer",
+                "total_vendido": "3",
+                "receita": "3000.00"
+            }
+        ],
+        "produtoMenorEstoque": {
+            "nome": "Fanta",
+            "quantidade": 9
+        }
+    }
+}

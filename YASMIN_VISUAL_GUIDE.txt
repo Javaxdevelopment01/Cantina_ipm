@@ -1,0 +1,440 @@
+# 📸 YASMIN - Guia Visual e Exemplos
+
+## 🎨 Interface do Widget YASMIN
+
+### Posição do Botão YASMIN
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   CARDÁPIO DIGITAL                      │
+│                                                         │
+│  [Produto 1]  [Produto 2]  [Produto 3]  [Produto 4]   │
+│                                                         │
+│  [Produto 5]  [Produto 6]  [Produto 7]                │
+│                                                         │
+│                               ┌─ Botão YASMIN (✨)     │
+│                               │                         │
+│         🛒 (Carrinho)          │                         │
+│         (Canto sup-dir)        │                         │
+│                              │ │ (Canto inf-dir)        │
+│                              └─                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Widget Aberto
+
+```
+┌────────────────────────────────────┐
+│  YASMIN                         ✕   │  ← Fechar
+├────────────────────────────────────┤
+│  Olá! Sou a YASMIN, tua          │
+│  assistente virtual da Cantina   │
+│  IPM.                            │
+│                                  │
+│  Estou aqui para ajudarte a      │
+│  escolher o melhor produto       │
+│  para ti!                        │
+└────────────────────────────────────┘
+```
+
+### Widget com Resposta
+
+```
+┌────────────────────────────────────┐
+│  YASMIN                         ✕   │
+├────────────────────────────────────┤
+│  Cliente: "Quero algo saudável"    │
+│                                    │
+│  YASMIN: "Ótimo! Recomendo estes  │
+│  produtos para ti:                 │
+│                                    │
+│  • Suco Natural de Laranja         │
+│    Kz 150.00                       │
+│    [Adicionar]                     │
+│                                    │
+│  • Salada Verde                    │
+│    Kz 250.00                       │
+│    [Adicionar]                     │
+│                                    │
+│  Algum destes te interessa?"       │
+├────────────────────────────────────┤
+│  [Escreve aqui...] [📤]            │
+└────────────────────────────────────┘
+```
+
+---
+
+## 💬 Fluxo de Conversa Típico
+
+### Exemplo 1: Cliente Saudável
+
+```
+┌──────────────────────────────────────┐
+│ CLIENTE ESCREVE: "Quero algo saudável"
+└──────────────────────────────────────┘
+                  ↓
+         ┌─────────────────┐
+         │ YASMIN Analisa  │
+         │ Intenção: saude │
+         └─────────────────┘
+                  ↓
+┌──────────────────────────────────────┐
+│ YASMIN FILTRA PRODUTOS:              │
+│ • Categoria: saude                   │
+│ • Tags: saudável, leve               │
+└──────────────────────────────────────┘
+                  ↓
+┌──────────────────────────────────────┐
+│ YASMIN RECOMENDA:                    │
+│ 1. Suco Natural de Laranja (Kz 150)  │
+│ 2. Salada Verde (Kz 250)             │
+│ 3. (Se houver 3ª opção)              │
+└──────────────────────────────────────┘
+                  ↓
+┌──────────────────────────────────────┐
+│ CLIENTE CLICA "ADICIONAR"            │
+│ ✓ Produto entra no carrinho          │
+└──────────────────────────────────────┘
+```
+
+### Exemplo 2: Cliente Vegetariano
+
+```
+CLIENTE: "Vegetariano"
+     ↓
+YASMIN (intenção: vegetariano)
+     ↓
+FILTRO: tags = "vegetariano"
+     ↓
+RECOMENDAÇÕES:
+  • Sanduíche de Queijo (Kz 200)
+  • Salada Verde (Kz 250)
+     ↓
+CLIENTE ESCOLHE: "Adicionar Sanduíche"
+     ↓
+✓ Sanduíche adicionado ao carrinho
+```
+
+### Exemplo 3: Cliente Pressa
+
+```
+CLIENTE: "Um lanche rápido"
+     ↓
+YASMIN (intenção: lanches, tag: rápido)
+     ↓
+RECOMENDAÇÕES:
+  • Sanduíche de Queijo (Kz 200) [pronto]
+     ↓
+CLIENTE: "Adicionar"
+     ↓
+✓ Lanche adicionado instantaneamente
+```
+
+---
+
+## 🔍 Exemplos de Perguntas Reconhecidas
+
+### ✅ Saudável (Categoria: saude)
+
+| Pergunta | Resposta Esperada |
+|----------|-------------------|
+| "Quero algo saudável" | Suco + Salada |
+| "Uma opção leve" | Salada Verde |
+| "Com vitaminas" | Suco de Laranja |
+| "Baixa caloria" | Salada Verde |
+| "Fruta" | Suco Natural |
+
+### ✅ Lanches (Categoria: lanches)
+
+| Pergunta | Resposta Esperada |
+|----------|-------------------|
+| "Um lanche" | Sanduíche |
+| "Rápido" | Sanduíche |
+| "Snack" | Sanduíche |
+| "Para comer depressa" | Sanduíche |
+
+### ✅ Bebidas (Categoria: bebidas)
+
+| Pergunta | Resposta Esperada |
+|----------|-------------------|
+| "Bebida" | Suco Natural |
+| "Suco" | Suco Natural |
+| "Algo refrescante" | Suco Natural |
+| "Água" | Suco Natural (+ Água) |
+
+### ✅ Doces (Categoria: doces)
+
+| Pergunta | Resposta Esperada |
+|----------|-------------------|
+| "Um doce" | Bolo de Chocolate |
+| "Sobremesa" | Bolo de Chocolate |
+| "Chocolate" | Bolo de Chocolate |
+| "Bolo" | Bolo de Chocolate |
+
+### ✅ Vegetariano (Tag: vegetariano)
+
+| Pergunta | Resposta Esperada |
+|----------|-------------------|
+| "Vegetariano" | Sanduíche + Salada |
+| "Sem carne" | Sanduíche + Salada |
+| "Vegan" | Salada + Suco |
+
+### ✅ Ajuda (Meta)
+
+| Pergunta | Resposta Esperada |
+|----------|-------------------|
+| "Olá" | Saudação |
+| "Ajuda" | Menu de ajuda |
+| "Como funciona" | Explicação |
+| "O que podes fazer" | Capacidades |
+
+---
+
+## 📊 Fluxo Técnico Completo
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   CLIENTE                               │
+│        (Browser - app/views/cliente/dashboard)          │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ 1. Digita: "Quero algo saudável"
+                   │ 2. Clica: Enviar
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│            JAVASCRIPT (Frontend)                         │
+│  • Captura mensagem                                     │
+│  • Envia POST para API                                  │
+│  • Recebe JSON                                          │
+│  • Renderiza resposta                                   │
+│  • Adiciona event listeners aos botões                  │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ POST /app/api/yasmin_api.php
+                   │ { "mensagem": "Quero algo saudável" }
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│        PHP API (app/api/yasmin_api.php)                 │
+│  • Valida input                                         │
+│  • Verifica Python                                      │
+│  • Executa script Python via CLI                        │
+│  • Decodifica JSON output                               │
+│  • Retorna resposta                                     │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ exec("python ia/yasmin_assistant.py...")
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│    PYTHON (ia/yasmin_assistant.py)                      │
+│  1. Detecta intenção: "saude"                           │
+│  2. Filtra produtos por categoria                       │
+│  3. Gera recomendações (top 3)                          │
+│  4. Formata resposta em JSON                            │
+│  5. Escreve para stdout                                 │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ JSON Response
+                   │ {
+                   │   "success": true,
+                   │   "mensagem": "Ótimo! Recomendo...",
+                   │   "recomendacoes": [...]
+                   │ }
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│        PHP API (Retorna ao Cliente)                     │
+│  • Valida JSON do Python                                │
+│  • Retorna para JavaScript                              │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ Response JSON com recomendações
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│        JAVASCRIPT (Renderiza)                           │
+│  • Mostra mensagem do YASMIN                            │
+│  • Lista recomendações                                  │
+│  • Adiciona botões "Adicionar"                          │
+│  • Aguarda clique do cliente                            │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ Cliente clica "Adicionar"
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│    JavaScript (Atualiza Carrinho)                       │
+│  • Adiciona produto ao array cart[]                     │
+│  • Atualiza badge do carrinho                           │
+│  • Persiste em localStorage                             │
+│  • Mostra feedback visual                               │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────┐
+│           CLIENTE VÊ:                                   │
+│  "✓ Adicionado ao carrinho!"                            │
+│   Pode continuar comprando ou ir para checkout          │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎯 Casos de Uso Reais
+
+### Caso 1: Aluno Apressado
+
+```
+HORA: 13:00 (Durante o intervalo)
+ALUNO: "Preciso algo rápido"
+
+YASMIN RESPONDE:
+"Ótimo! Para pressa, recomendo:
+• Sanduíche de Queijo - Kz 200
+  (Pronto em 2 minutos)
+
+ALUNO: [Clica Adicionar]
+RESULTADO: ✓ Pedido criado em 30 segundos
+```
+
+### Caso 2: Cliente Fitness
+
+```
+HORA: 14:30 (Após aula)
+CLIENTE: "Quer algo super saudável"
+
+YASMIN RESPONDE:
+"Perfeito! Opções saudáveis:
+• Salada Verde - Kz 250
+• Suco Natural de Laranja - Kz 150
+
+CLIENTE: [Adiciona ambos]
+RESULTADO: ✓ Refeição saudável pronta
+```
+
+### Caso 3: Indeciso
+
+```
+CLIENTE: "Não sei o que escolher"
+
+YASMIN RESPONDE:
+"Sem problemas! Posso ajudarte:
+• Queres algo saudável?
+• Algo rápido?
+• Uma bebida?
+
+CLIENTE: "Saudável"
+
+YASMIN FILTRA e recomenda
+RESULTADO: ✓ Decisão facilitada
+```
+
+---
+
+## 📈 Métricas de Sucesso
+
+### Esperadas (1ª semana)
+- ✓ 100% dos clientes conseguem usar YASMIN
+- ✓ 0 erros técnicos
+- ✓ Tempo médio de resposta: < 200ms
+- ✓ Satisfação: 4.5/5 ⭐
+
+### Esperadas (1º mês)
+- ✓ Aumento de 20% em pedidos online
+- ✓ Redução de dúvidas "qual produto escolher"
+- ✓ Tempo de decisão reduzido em 40%
+- ✓ Taxa de recomendação aceita: 60%+
+
+### Esperadas (3 meses)
+- ✓ 80% de clientes usando YASMIN regularmente
+- ✓ Aumento de 35% em cross-selling
+- ✓ Redução de stock de produtos recomendados
+- ✓ Satisfação: 4.8/5 ⭐
+
+---
+
+## 🎓 Dicas para Clientes
+
+### Como Obter Melhores Recomendações
+
+1. **Seja Específico**
+   ```
+   ❌ "Um coisa"
+   ✅ "Algo saudável e rápido"
+   ```
+
+2. **Use Palavras-Chave**
+   ```
+   ✅ "Vegetariano"
+   ✅ "Sem carne"
+   ✅ "Leve"
+   ✅ "Proteína"
+   ```
+
+3. **Faça Perguntas Claras**
+   ```
+   ✅ "Recomenda um doce?"
+   ✅ "Quero bebida refrescante"
+   ✅ "Algo barato?"
+   ```
+
+---
+
+## 🔐 Segurança Visível ao Cliente
+
+- ✅ Mensagens processadas localmente
+- ✅ Sem rastreamento de dados pessoais
+- ✅ Sem armazenamento de conversas
+- ✅ Totalmente anónimo
+- ✅ Nada é enviado para "nuvem"
+
+---
+
+## 📱 Responsividade
+
+### Desktop (1200px+)
+```
+┌─────────────────────────────────┐
+│ Cardápio    |    Widget YASMIN   │
+│             |    (360px)         │
+└─────────────────────────────────┘
+```
+
+### Tablet (768px - 1199px)
+```
+┌──────────────┐
+│ Cardápio     │
+├──────────────┤
+│ Widget       │
+│ YASMIN (full)│
+└──────────────┘
+```
+
+### Mobile (< 768px)
+```
+┌────────┐
+│Cardáp. │
+├────────┤
+│YASMIN  │
+│(320px) │
+└────────┘
+```
+
+---
+
+## ✅ Conclusão Visual
+
+**YASMIN transforma a experiência de compra em 3 cliques:**
+
+1. 🎯 Cliente clica no botão (2 segundos)
+2. 💬 Escreve pergunta (5 segundos)
+3. ✨ YASMIN recomenda (< 1 segundo)
+
+**Total: 8 segundos até recomendação!**
+
+---
+
+*Guia Visual - YASMIN v1.0*
+*Status: ✅ Pronto para Uso*

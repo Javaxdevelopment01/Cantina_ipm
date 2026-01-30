@@ -70,7 +70,7 @@ try {
     $stmt->execute();
 
     // Atualiza o status do pedido
-    $stmt = $conn->prepare("UPDATE pedido SET estado = 'finalizado' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE pedido SET estado = 'Finalizado' WHERE id = ?");
     $stmt->execute([$dados['pedido_id']]);
 
     $conn->commit();

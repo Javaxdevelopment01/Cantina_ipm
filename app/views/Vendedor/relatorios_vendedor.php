@@ -35,7 +35,10 @@ $vendedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 	<style>
 		body { font-family: 'Segoe UI', Arial, sans-serif; background:#f6f7fb; color:#222; }
-		.main { margin-left: 240px; padding: 30px; }
+		.main { margin-left: 250px; padding: 30px; transition:0.3s; }
+		@media (max-width: 768px) {
+			.main { margin-left:0 !important; padding:80px 15px 15px !important; }
+		}
 		.card-pro { background: #fff; border-radius:12px; box-shadow: 0 6px 18px rgba(2,20,30,0.06); padding:20px; }
 		.indicators { display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
 		.indicator { background:#fff; padding:14px; border-radius:10px; box-shadow: 0 4px 12px rgba(2,20,30,0.05); flex:1; min-width:180px; }

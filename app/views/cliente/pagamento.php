@@ -1,9 +1,9 @@
 <?php
 // Inclui cabeçalho e menu
 include_once __DIR__ . '/../../../includes/header.php';
-//clude_once __DIR__ . '/../../../includes/menu.php';
+// include_once __DIR__ . '/../../../includes/menu.php';
 
-// Verifica se há dados recebidos (exemplo: ID do produto ou valor)
+// Recebe dados do produto
 $produto = isset($_GET['produto']) ? htmlspecialchars($_GET['produto']) : 'Produto Desconhecido';
 $preco = isset($_GET['preco']) ? number_format($_GET['preco'], 2, ',', '.') : '0,00';
 ?>
@@ -41,8 +41,8 @@ $preco = isset($_GET['preco']) ? number_format($_GET['preco'], 2, ',', '.') : '0
                             <select name="metodo" class="form-select" required>
                                 <option value="">-- Seleciona --</option>
                                 <option value="mao">À Mão</option>
-                                <option value="multicaixa">Multicaixa Express</option>
                                 <option value="cartao">Cartão</option>
+                                <option value="online">Pagamento Online</option>
                             </select>
                         </div>
 
@@ -56,7 +56,7 @@ $preco = isset($_GET['preco']) ? number_format($_GET['preco'], 2, ',', '.') : '0
 
             <!-- Mensagem de sucesso -->
             <div id="mensagemSucesso" class="alert alert-success text-center mt-4 d-none">
-                ✅ Compra realizada com sucesso. O atendedor foi notificado para preparar o teu pedido.
+                ✅ Compra realizada com sucesso. O atendente foi notificado para preparar o teu pedido.
             </div>
         </div>
     </div>
@@ -65,30 +65,56 @@ $preco = isset($_GET['preco']) ? number_format($_GET['preco'], 2, ',', '.') : '0
 <?php include_once __DIR__ . '/../../../includes/footer.php'; ?>
 
 <script>
-    // Simulação do envio do formulário
-    document.getElementById('formPagamento').addEventListener('submit', function(e) {
-        e.preventDefault();
+document.getElementById('formPagamento').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-        const form = e.target;
-        const nome = form.nome.value.trim();
-        const numero = form.numero_estudante.value.trim();
-        const metodo = form.metodo.value;
+    const form = e.target;
+    const nome = form.nome.value.trim();
+    const numero = form.numero_estudante.value.trim();
+    const metodo = form.metodo.value;
 
-        if (!nome || !numero || !metodo) {
-            alert('Por favor, preenche todos os campos antes de continuar.');
-            return;
+    if (!nome || !numero || !metodo) {
+        alert('Por favor, preenche todos os campos antes de continuar.');
+        return;
+    }
+
+    const dados = {
+        nome,
+        numero,
+        metodo,
+        produto: '<?php echo $produto; ?>',
+        preco: '<?php echo $preco; ?>'
+    };
+
+    if(metodo === 'online'){
+        // pagamento online real
+        try{
+            const res = await fetch('processar_pagamento_online.php', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify(dados)
+            });
+            const json = await res.json();
+            if(json.ok){
+                // redireciona para link de pagamento do gateway
+                window.location.href = json.link_pagamento;
+            } else {
+                alert('Erro ao iniciar pagamento online: ' + json.msg);
+            }
+        }catch(err){
+            console.error(err);
+            alert('Erro ao processar pagamento online.');
         }
-
-        // Simula a confirmação do pagamento
+    } else {
+        // métodos presenciais mantêm fluxo atual
         form.classList.add('d-none');
         document.getElementById('mensagemSucesso').classList.remove('d-none');
-
-        // Simula envio de notificação para o usuário (atendedor)
         setTimeout(() => {
-            alert('Pedido enviado ao atendedor. A tua refeição será entregue em breve.');
+            alert('Pedido enviado ao atendente. A tua refeição será entregue em breve.');
             window.location.href = '/cantina_ipm/app/views/cliente/dashboard_cliente.php';
-        }, 3000);
-    });
+        }, 2000);
+    }
+});
 </script>
 
 <style>

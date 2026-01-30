@@ -107,15 +107,15 @@ class PedidoController {
     }
 
     public function getPedidoItens($id_pedido) {
-        // Busca dados do cliente
+        // Busca dados do cliente e do pedido (para forma_pagamento)
         $stmt = $this->conn->prepare("
-            SELECT c.*
+            SELECT c.*, p.forma_pagamento
             FROM pedido p
             LEFT JOIN cliente c ON p.id_cliente = c.id
             WHERE p.id = ?
         ");
         $stmt->execute([$id_pedido]);
-        $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+        $data_pedido = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Busca itens do pedido
         // Note: tabela de produtos no banco é 'produto' (singular) conforme outras consultas
@@ -128,7 +128,14 @@ class PedidoController {
         $stmt->execute([$id_pedido]);
         $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return ['itens' => $itens, 'cliente' => $cliente];
+        return [
+            'itens' => $itens, 
+            'cliente' => [
+                'id' => $data_pedido['id'] ?? null,
+                'nome' => $data_pedido['nome'] ?? null
+            ],
+            'forma_pagamento' => $data_pedido['forma_pagamento'] ?? 'N/A'
+        ];
     }
 
     public function atualizarEstadoPedido($id_pedido, $estado) {
@@ -143,21 +150,28 @@ class PedidoController {
             ");
             $stmt->execute([$estado, $id_pedido]);
 
-            // Se foi atendido, cria uma venda
+            // Se foi marcado como "atendido", cria uma venda
             if ($estado === 'atendido') {
-                $stmt = $this->conn->prepare("
-                    INSERT INTO venda (id_pedido, id_vendedor, data_venda, total, valor_pago, troco, estado)
-                    SELECT 
-                        id, 
-                        ?, 
-                        NOW(), 
-                        total,
-                        total, -- valor_pago inicialmente igual ao total
-                        0, -- troco inicialmente zero
-                        'finalizada'
-                    FROM pedido WHERE id = ?
-                ");
-                $stmt->execute([$_SESSION['vendedor_id'], $id_pedido]);
+                // Verifica se já existe venda
+                $checkStmt = $this->conn->prepare("SELECT id FROM venda WHERE id_pedido = ? LIMIT 1");
+                $checkStmt->execute([$id_pedido]);
+                
+                if ($checkStmt->rowCount() === 0) {
+                    // Cria nova venda (aparecerá em VENDAS)
+                    $stmt = $this->conn->prepare("
+                        INSERT INTO venda (id_pedido, id_vendedor, data_venda, total, valor_pago, troco, estado)
+                        SELECT 
+                            id, 
+                            ?, 
+                            NOW(), 
+                            total,
+                            0,
+                            0,
+                            'pendente'
+                        FROM pedido WHERE id = ?
+                    ");
+                    $stmt->execute([$_SESSION['vendedor_id'], $id_pedido]);
+                }
             }
 
             $this->conn->commit();

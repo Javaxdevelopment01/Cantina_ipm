@@ -2,16 +2,21 @@
 // produtos_vendedor.php - Painel de gestão de produtos para vendedores
 session_start();
 require_once __DIR__ . '/../../../config/database.php';
-// includes do vendedor (sidebar)
-include __DIR__ . '/includes/menu_vendedor.php';
 
+// Endpoint simples para retorno JSON dos produtos (usado pelo polling JS)
+// MOVIDO PARA O TOPO para evitar que HTML do menu seja injetado
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'produtos') {
+    // Busca produtos apenas para o AJAX
+    $stmt = $conn->prepare("SELECT p.*, c.nome AS categoria_nome FROM produto p LEFT JOIN categoria c ON p.categoria_id = c.id ORDER BY p.id DESC");
+    $stmt->execute();
+    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-// Função de segurança para texto
-function safe($str) {
-    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($produtos);
+    exit;
 }
 
+// 1. Processamento de POST (deve ocorrer antes de qualquer output HTML/Headers)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
     $acao = $_POST['acao'];
     $nome = trim($_POST['nome']);
@@ -92,15 +97,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
 
     if ($acao === 'excluir' && !empty($_POST['id'])) {
         $id = intval($_POST['id']);
-        // opcional: remover ficheiro antigo (não implementado para segurança)
         $stmt = $conn->prepare("DELETE FROM produto WHERE id=:id");
         $stmt->execute([':id'=>$id]);
     }
 
-    // após ação, redireciona para evitar re-submissão
+    // Após ação bem sucedida, retorna JSON se for AJAX ou redireciona se for post normal
+    if (isset($_POST['is_ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => true, 'message' => 'Operação realizada com sucesso!']);
+        exit;
+    }
+
     header('Location: produtos_vendedor.php');
     exit;
 }
+
+// 2. Includes e inicialização de visualização
+include __DIR__ . '/includes/menu_vendedor.php';
+
+// Função de segurança para texto
+function safe($str) {
+    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+}
+
 
 // Buscar produtos e categorias
 $stmt = $conn->prepare("SELECT p.*, c.nome AS categoria_nome FROM produto p LEFT JOIN categoria c ON p.categoria_id = c.id ORDER BY p.id DESC");
@@ -113,16 +132,9 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Limiar de alerta de estoque (ajustável)
 $lowThreshold = 5;
-
-// Endpoint simples para retorno JSON dos produtos (usado pelo polling JS)
-if (isset($_GET['ajax']) && $_GET['ajax'] === 'produtos') {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($produtos);
-    exit;
-}
 ?>
 
-<div class="main container-fluid" style="margin-left:270px; padding:30px;">
+<div class="main container-fluid">
     <!-- Header específico da aba de produtos (sem navegação extra) -->
     <div class="page-header d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -164,9 +176,10 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'produtos') {
                             title="Editar">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <form method="post" style="display:inline;" onsubmit="return confirm('Deseja excluir este produto?');">
+                        <form method="post" class="form-excluir-ajax" style="display:inline;">
                             <input type="hidden" name="acao" value="excluir">
                             <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+                            <input type="hidden" name="is_ajax" value="1">
                             <button type="submit" class="btn btn-delete" title="Excluir">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -179,147 +192,137 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'produtos') {
     </div>
 </div>
 
-<!-- Modal Novo/Editar Produto -->
-<div class="modal fade" id="modalProduto" tabindex="-1" aria-labelledby="modalProdutoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalProdutoLabel">Novo Produto</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-      </div>
-      <div class="modal-nav">
-        <ul class="nav nav-pills" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#info-basica" type="button">
-                    <i class="fa-solid fa-info-circle me-2"></i>Informações Básicas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#detalhes" type="button">
-                    <i class="fa-solid fa-list me-2"></i>Detalhes
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#imagem-produto" type="button">
-                    <i class="fa-solid fa-image me-2"></i>Imagem
-                </button>
-            </li>
-        </ul>
-      </div>
-      <div class="modal-body">
-        <form id="formProduto" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="acao" id="acao" value="cadastrar">
-            <input type="hidden" name="id" id="edit-id">
-            
-            <div class="tab-content">
-                <!-- Informações Básicas -->
-                <div class="tab-pane fade show active" id="info-basica">
-                    <div class="form-section">
-                        <h6 class="form-section-title">Informações Básicas do Produto</h6>
-                        
-                        <!-- Nome do Produto -->
-                        <div class="mb-4">
-                            <label class="form-label">Nome do Produto</label>
-                            <input type="text" class="form-control" name="nome" id="edit-nome" required 
-                                   placeholder="Digite o nome do produto">
+<!-- Pure CSS Custom Modal -->
+<div id="customModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="modal-header-premium">
+            <h5 id="modalProdutoLabel" style="color: #fff; font-weight: 700; font-size: 1.4rem; letter-spacing: 0.5px; display: flex; align-items: center; margin:0;">
+                <i class="fa-solid fa-box-open me-3" style="color: var(--dourado);"></i>
+                <span>Novo Produto</span>
+            </h5>
+            <button type="button" class="btn-close-custom" onclick="fecharModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body-custom">
+            <form id="formProduto" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="acao" id="acao" value="cadastrar">
+                <input type="hidden" name="id" id="edit-id">
+                
+                <!-- Nome do Produto -->
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Nome do Produto</label>
+                    <input type="text" class="form-control" name="nome" id="edit-nome" required 
+                           placeholder="Ex: Bebida Energética 500ml" style="border-radius: 12px; padding: 12px 15px; border: 2px solid #f1f5f9; background: #f8fafc;">
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase;">Categoria</label>
+                        <select class="form-select" name="categoria" id="edit-categoria" required style="border-radius: 12px; padding: 12px 15px; border: 2px solid #f1f5f9; background: #f8fafc;">
+                            <option value="" selected disabled>Selecionar...</option>
+                            <?php foreach ($categorias as $c): ?>
+                                <option value="<?php echo $c['id']; ?>"><?php echo safe($c['nome']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase;">Estoque Inicial</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="quantidade" id="edit-quantidade" required min="0" placeholder="0" style="border-radius: 12px 0 0 12px; padding: 12px 15px; border: 2px solid #f1f5f9; background: #f8fafc; border-right: none;">
+                            <span class="input-group-text" style="background: #f1f5f9; border: 2px solid #f1f5f9; border-radius: 0 12px 12px 0; color: #64748b; font-weight: 600;">un</span>
                         </div>
-                        
-                        <!-- Categoria -->
-                        <div class="mb-4">
-                            <label class="form-label">Categoria</label>
-                            <select class="form-select" name="categoria" id="edit-categoria" required>
-                                <option value="" selected disabled>Selecionar categoria...</option>
-                                <?php foreach ($categorias as $c): ?>
-                                    <option value="<?php echo $c['id']; ?>"><?php echo safe($c['nome']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    </div>
+                </div>
 
-                        <!-- Quantidade e Preço -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label">Quantidade</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="quantidade" 
-                                           id="edit-quantidade" required min="0" placeholder="0">
-                                    <span class="input-group-text">un</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Preço</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">KZ</span>
-                                    <input type="text" class="form-control" name="preco" 
-                                           id="edit-preco" required placeholder="0,00">
-                                </div>
-                            </div>
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Preço de Venda (KZ)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: #f1f5f9; border: 2px solid #f1f5f9; border-radius: 12px 0 0 12px; color: var(--petroleo); font-weight: 800;">KZ</span>
+                        <input type="text" class="form-control" name="preco" id="edit-preco" required placeholder="0,00" style="border-radius: 0 12px 12px 0; padding: 12px 15px; border: 2px solid #f1f5f9; background: #f8fafc; border-left: none; font-weight: 700; font-size: 1.1rem; color: var(--petroleo);">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Descrição</label>
+                    <textarea class="form-control" name="descricao" id="edit-descricao" placeholder="Breve nota sobre o produto..." rows="3" style="border-radius: 12px; padding: 12px 15px; border: 2px solid #f1f5f9; background: #f8fafc; resize: none;"></textarea>
+                </div>
+
+                <!-- Imagem Compacta -->
+                <div class="image-upload-zone" id="dropZone" style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 20px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; margin-top: 10px;">
+                    <input type="file" name="imagem" id="edit-imagem" hidden accept="image/*">
+                    <div class="upload-placeholder" id="uploadPlaceholder" style="text-align: center;">
+                        <div class="upload-icon" style="font-size: 2rem; color: #94a3b8; margin-bottom: 8px;">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <p style="margin: 0; font-weight: 600; color: #475569; font-size: 0.9rem;">Imagem do Produto</p>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">Arraste ou clique</span>
+                    </div>
+                    <div id="previewContainer" class="preview-active" style="display:none; width: 100%; height: 100%;">
+                        <img id="previewImg" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="change-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #fff; opacity:0; transition:0.3s;">
+                            <i class="fa-solid fa-camera me-2"></i> Alterar
                         </div>
                     </div>
                 </div>
                 
-                <!-- Detalhes -->
-                <div class="tab-pane fade" id="detalhes">
-                    <div class="form-section">
-                        <h6 class="form-section-title">Detalhes do Produto</h6>
-                        
-                        <!-- Descrição -->
-                        <div class="mb-4">
-                            <label class="form-label">Descrição Detalhada</label>
-                            <textarea class="form-control" name="descricao" id="edit-descricao" 
-                                      placeholder="Descreva o produto detalhadamente..." rows="6"></textarea>
-                        </div>
-                    </div>
+                <!-- Botão Salvar Compacto -->
+                <div class="mt-4 pt-2">
+                    <button type="submit" id="btnSalvarProduto" class="btn w-100 py-3" style="background: linear-gradient(135deg, var(--petroleo) 0%, #034c6a 100%); color: #fff; border: none; border-radius: 15px; font-weight: 800; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(1, 46, 64, 0.2); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center;">
+                        <span class="btn-text d-flex align-items-center">
+                            <i class="fa-solid fa-check-double me-2"></i>
+                            Confirmar Cadastro
+                        </span>
+                        <span class="btn-loader d-none">
+                            <i class="fa-solid fa-circle-notch fa-spin me-2"></i>
+                            Gravando...
+                        </span>
+                    </button>
                 </div>
-
-                <!-- Imagem -->
-                <div class="tab-pane fade" id="imagem-produto">
-                    <div class="form-section">
-                        <h6 class="form-section-title">Imagem do Produto</h6>
-                        
-                        <!-- Upload de Imagem -->
-                        <div class="mb-4">
-                            <label class="form-label">Upload de Imagem</label>
-                            <input type="file" class="form-control" name="imagem" id="edit-imagem" accept="image/*">
-                            <small class="text-muted d-block mt-2">
-                                <i class="fa-solid fa-circle-info me-1"></i>
-                                Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB
-                            </small>
-                        </div>
-                        
-                        <div id="previewContainer" class="mt-3" style="display:none;">
-                            <small class="text-muted d-block mb-2">Visualização da Imagem</small>
-                            <div class="preview-box">
-                                <img id="previewImg" src="" alt="Preview" class="img-fluid">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Botão Salvar -->
-            <div class="form-section mt-4" style="border-top: 1px solid #e9ecef; padding-top: 20px;">
-                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center">
-                    <i class="fa-solid fa-check me-2"></i>
-                    Salvar Produto
-                </button>
-            </div>
-        </form>
-      </div>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
 
 <style>
-    .main { min-height: 60vh; }
+    .main { 
+        min-height: 60vh; 
+        margin-left: 270px; /* Increased from 250px for breathing room */
+        padding: 30px; 
+        transition: 0.3s;
+    }
+    @media (max-width: 1024px) {
+        .main {
+            margin-left: 0 !important;
+            padding: 80px 20px 20px !important;
+        }
+    }
     .cabecalho h2 { font-weight:700; }
     .btn-dourado { background: #D4AF37; color: #012E40; font-weight:600; border:none; padding:10px 20px; border-radius:8px; }
-    /* Força no máximo 3 colunas por linha em telas maiores, quebra responsiva para 2/1 */
-    .grade { display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; }
-    @media (max-width: 1100px) {
-        .grade { grid-template-columns: repeat(2, 1fr); }
+    
+    /* Grid Responsivo Inteligente */
+    .grade { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+        gap: 20px; 
     }
-    @media (max-width: 700px) {
+    
+    /* Ajustes específicos para mobile muito pequeno */
+    @media (max-width: 480px) {
         .grade { grid-template-columns: 1fr; }
+        .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .btn-novo-floating { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .img-produto { height: 200px; }
     }
     .produto-card { background:white; border-radius:12px; overflow:hidden; text-align:left; box-shadow:0 3px 8px rgba(0,0,0,0.08); transition:0.25s; display:flex; flex-direction:column; height:100%; }
     .produto-card:hover { transform:translateY(-6px); box-shadow:0 8px 24px rgba(0,0,0,0.12); }
@@ -341,162 +344,343 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'produtos') {
     .btn-delete { background:#dc3545; color:#fff; border:none; width:44px; height:44px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; }
     .btn-delete:hover { transform:scale(1.05); box-shadow:0 6px 18px rgba(220,53,69,0.12); }
 
-    /* Estilos do Modal */
-    .modal-dialog { max-width: 600px; }
-    .modal-content { 
-        background: #ffffff; 
-        border: none; 
-        border-radius: 20px; 
-        box-shadow: 0 15px 50px rgba(0,0,0,0.15); 
+    /* --- ULTRA-PREMIUM MODAL DESIGN --- */
+    .premium-modal {
+        border-radius: 30px !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+        overflow: hidden;
     }
-    .modal-header { 
+
+    .modal-header-premium {
         background: linear-gradient(135deg, var(--petroleo) 0%, #034c6a 100%);
-        border: none;
-        border-radius: 20px 20px 0 0;
-        padding: 20px 30px;
+        padding: 30px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
     }
-    .modal-header .modal-title { 
-        color: #fff; 
-        font-weight: 600; 
-        font-size: 1.25rem;
-        letter-spacing: 0.3px;
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 20px;
     }
-    .modal-header .btn-close { 
-        background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
-        opacity: 0.8;
-        transition: opacity 0.2s;
-        padding: 12px;
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(212, 175, 55, 0.15);
+        border: 2px solid var(--dourado);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dourado);
+        font-size: 24px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
-    .modal-header .btn-close:hover { opacity: 1; }
-    .modal-body { 
-        padding: 30px; 
-        background: #fff;
-        border-radius: 0 0 20px 20px;
+
+    .title-box h5 {
+        color: #fff;
+        margin: 0;
+        font-weight: 800;
+        font-size: 1.6rem;
+        letter-spacing: -0.5px;
     }
-    .modal-body .form-label { 
-        color: #344054; 
-        font-weight: 500; 
+
+    .title-box p {
+        color: rgba(255,255,255,0.6);
+        margin: 0;
         font-size: 0.9rem;
-        margin-bottom: 6px;
-        letter-spacing: 0.3px;
     }
-    .modal-body .form-control, 
-    .modal-body .form-select { 
-        border-radius: 10px; 
-        border: 1px solid #E4E7EC;
-        padding: 12px 16px;
-        font-size: 0.95rem;
-        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-        transition: all 0.2s;
+
+    .btn-close-premium {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.3s;
     }
-    .modal-body .form-control:focus,
-    .modal-body .form-select:focus { 
-        border-color: var(--petroleo); 
-        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 0 0 4px rgba(1,46,64,0.08);
+
+    .btn-close-premium:hover {
+        background: rgba(255,255,255,0.2);
+        transform: rotate(90deg);
     }
-    .modal-body textarea.form-control {
-        min-height: 100px;
-        resize: vertical;
+
+    .modal-body-premium {
+        padding: 40px;
+        max-height: 70vh;
+        overflow-y: auto;
+        /* Scrollbar elegante */
+        scrollbar-width: thin;
+        scrollbar-color: var(--petroleo) #f1f1f1;
     }
-    #previewContainer { 
-        background: #F9FAFB; 
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px dashed #E4E7EC;
+
+    .modal-body-premium::-webkit-scrollbar {
+        width: 8px;
+    }
+    .modal-body-premium::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    .modal-body-premium::-webkit-scrollbar-thumb {
+        background: var(--petroleo);
+        border-radius: 10px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 30px;
+    }
+
+    @media (max-width: 991px) {
+        .form-grid { grid-template-columns: 1fr; }
+    }
+
+    .premium-group {
+        margin-bottom: 25px;
+    }
+
+    .premium-group label {
+        display: block;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 10px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .premium-group label i {
+        color: var(--dourado);
+        margin-right: 8px;
+        width: 18px;
         text-align: center;
     }
-    #previewImg { 
-        max-width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+    .premium-group input, 
+    .premium-group select, 
+    .premium-group textarea {
+        width: 100%;
+        border: 2px solid #e2e8f0;
+        padding: 14px 20px;
+        border-radius: 16px;
+        background: #f8fafc;
+        transition: all 0.3s;
+        font-size: 0.95rem;
+        color: #0f172a;
     }
-    .modal-body button[type="submit"] { 
-        background: var(--petroleo); 
-        color: #fff; 
-        border: none; 
-        padding: 14px;
-        font-weight: 600; 
-        font-size: 1rem;
-        border-radius: 12px; 
-        transition: all 0.2s ease;
-        margin-top: 10px;
-        letter-spacing: 0.3px;
-        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+    .premium-group input:focus, 
+    .premium-group select:focus, 
+    .premium-group textarea:focus {
+        border-color: var(--petroleo);
+        background: #fff;
+        box-shadow: 0 8px 16px rgba(1, 46, 64, 0.08);
+        outline: none;
+        transform: translateY(-2px);
     }
-    .modal-body button[type="submit"]:hover { 
-        background: #034c6a; 
-        transform: translateY(-1px); 
-        box-shadow: 0 6px 20px rgba(1,46,64,0.15);
+
+    .input-with-label {
+        position: relative;
+        display: flex;
+        align-items: center;
     }
-    .modal-body .input-group-text {
-        background: #F9FAFB;
-        border: 1px solid #E4E7EC;
-        border-radius: 10px;
-        padding: 0 16px;
-        color: #344054;
-        font-weight: 500;
+
+    .input-with-label span {
+        position: absolute;
+        left: 20px;
+        font-weight: 800;
+        color: #64748b;
+        pointer-events: none;
     }
-    /* Navegação do Modal */
-    .modal-nav {
-        background: #f8f9fa;
-        padding: 15px 30px;
-        border-bottom: 1px solid #e9ecef;
+
+    .input-with-label input {
+        padding-left: 50px;
     }
-    .modal-nav .nav-pills {
-        gap: 10px;
+
+    /* Upload Zone */
+    .image-upload-zone {
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 24px;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
     }
-    .modal-nav .nav-link {
-        color: #344054;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 0.9rem;
-        transition: all 0.2s;
+
+    .image-upload-zone:hover {
+        border-color: var(--petroleo);
+        background: rgba(1, 46, 64, 0.02);
     }
-    .modal-nav .nav-link:hover {
-        background: rgba(1,46,64,0.05);
+
+    .upload-placeholder {
+        text-align: center;
     }
-    .modal-nav .nav-link.active {
-        background: var(--petroleo);
-        color: white;
+
+    .upload-icon {
+        font-size: 3rem;
+        color: #94a3b8;
+        margin-bottom: 15px;
+        transition: 0.3s;
     }
-    .modal-body {
-        max-height: calc(100vh - 250px);
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
+
+    .image-upload-zone:hover .upload-icon {
+        color: var(--petroleo);
+        transform: scale(1.1);
     }
-    .modal-body::-webkit-scrollbar {
-        width: 6px;
+
+    .upload-placeholder p {
+        font-weight: 700;
+        margin: 0;
+        color: #475569;
     }
-    .modal-body::-webkit-scrollbar-track {
-        background: transparent;
+
+    .upload-placeholder span {
+        color: #94a3b8;
+        font-size: 0.8rem;
     }
-    .modal-body::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 6px;
+
+    .preview-active {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
     }
-    .form-section {
-        padding: 20px 0;
+
+    .preview-active img {
+        width: 100%; height: 100%; object-fit: cover;
     }
-    .form-section:not(:last-child) {
-        border-bottom: 1px solid #e9ecef;
-    }
-    .form-section-title {
-        color: #344054;
-        font-size: 1.1rem;
+
+    .change-overlay {
+        position: absolute;
+        bottom: 20px; left: 50%;
+        transform: translateX(-50%);
+        background: rgba(1, 46, 64, 0.8);
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 0.8rem;
         font-weight: 600;
-        margin-bottom: 20px;
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 0;
+        transition: 0.3s;
     }
-    
-    /* Animação suave do modal */
-    .modal.fade .modal-dialog {
-        transform: scale(0.95);
-        transition: transform 0.2s ease-out;
+
+    .image-upload-zone:hover .change-overlay {
+        opacity: 1;
+        bottom: 25px;
     }
-    .modal.show .modal-dialog {
-        transform: scale(1);
+
+    .info-alert-premium {
+        margin-top: 20px;
+        background: rgba(212, 175, 55, 0.08);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 18px;
+        padding: 15px 20px;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .info-alert-premium i {
+        color: var(--dourado);
+        font-size: 1.2rem;
+        margin-top: 2px;
+    }
+
+    .info-alert-premium h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 0.9rem;
+    }
+
+    .info-alert-premium p {
+        margin: 5px 0 0;
+        font-size: 0.8rem;
+        color: #475569;
+        line-height: 1.4;
+    }
+
+    /* Footer */
+    .modal-footer-premium {
+        padding: 30px 40px;
+        background: #fff;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+
+    .btn-cancel {
+        background: #f1f5f9;
+        color: #475569;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 16px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+
+    .btn-cancel:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .btn-save-premium {
+        background: linear-gradient(135deg, var(--petroleo) 0%, #034c6a 100%);
+        color: #fff;
+        border: none;
+        padding: 14px 40px;
+        border-radius: 16px;
+        font-weight: 800;
+        box-shadow: 0 10px 20px rgba(1, 46, 64, 0.2);
+        transition: 0.3s;
+    }
+
+    .btn-save-premium:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(1, 46, 64, 0.3);
+    }
+
+    .btn-save-premium:active {
+        transform: translateY(-1px);
+    }
+
+    #btnSalvarProduto:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(1, 46, 64, 0.3);
+        filter: brightness(1.1);
+    }
+    #btnSalvarProduto:active {
+        transform: translateY(-1px);
+    }
+
+    /* Grid layout smoothing */
+    .grade {
+        animation: fadeInUp 0.5s ease-out;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
@@ -512,30 +696,205 @@ document.addEventListener('DOMContentLoaded', function(){
     const btnNovo = document.getElementById('btnNovoProduto');
     const editarBtns = document.querySelectorAll('.btn-editar');
 
-    // Função para abrir o modal manualmente
+    // Drag and Drop Zone
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('edit-imagem');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+
+    dropZone.onclick = () => fileInput.click();
+
+    fileInput.onchange = function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    };
+
+    dropZone.ondragover = (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--petroleo)';
+        dropZone.style.background = 'rgba(1, 46, 64, 0.05)';
+    };
+
+    dropZone.ondragleave = () => {
+        dropZone.style.borderColor = '#cbd5e1';
+        dropZone.style.background = '#f8fafc';
+    };
+
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+    };
+
+    // Pure JS Custom Modal Logic
+    const customModal = document.getElementById('customModal');
+
     function abrirModal() {
-        modal.style.display = 'flex';
-        modal.style.opacity = '1';
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        customModal.classList.add('open');
     }
 
-    // Função para fechar o modal manualmente
     function fecharModal() {
-        modal.style.display = 'none';
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
+        customModal.classList.remove('open');
+        // Wait for transition to finish before hiding (handled by CSS opacity only for visual)
     }
 
-    // Fechar modal ao clicar fora
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
+    // Close on outside click
+    window.onclick = function(event) {
+        if (event.target == customModal) {
             fecharModal();
         }
-    });
+    }
 
-    // Fechar modal ao clicar no botão X
-    modal.querySelector('.btn-close').addEventListener('click', fecharModal);
+    // Função para recarregar a grade de produtos via AJAX
+    async function recarregarProdutos() {
+        try {
+            const response = await fetch('produtos_vendedor.php?ajax=produtos');
+            const produtos = await response.json();
+            const grade = document.querySelector('.grade');
+            
+            if (produtos.length === 0) {
+                grade.innerHTML = '<div class="alert alert-light text-center">Nenhum produto encontrado.</div>';
+                return;
+            }
+
+            let html = '';
+            produtos.forEach(p => {
+                const imagem = p.imagem ? ('/' + p.imagem.replace(/^\//, '')) : 'https://via.placeholder.com/400x300?text=Sem+Imagem';
+                const preco = parseFloat(p.preco).toLocaleString('pt-PT', {minimumFractionDigits: 2});
+                
+                html += `
+                    <div class="produto-card">
+                        <img src="${imagem}" class="img-produto" alt="${p.nome}">
+                        <div style="padding:12px;">
+                            <h5>${p.nome}</h5>
+                            <p class="text-muted small mb-1">${p.categoria_nome || 'Sem categoria'}</p>
+                            <p class="text-muted small">Qtd: <span class="qty-count">${p.quantidade}</span></p>
+                            <strong>KZ ${preco}</strong>
+                            <div class="acoes mt-3">
+                                <button type="button" class="btn btn-edit btn-editar"
+                                    data-id="${p.id}"
+                                    data-nome="${p.nome}"
+                                    data-descricao="${p.descricao || ''}"
+                                    data-quantidade="${p.quantidade}"
+                                    data-preco="${p.preco}"
+                                    data-categoria="${p.categoria_id}"
+                                    data-img="${p.imagem ? '/' + p.imagem.replace(/^\//, '') : ''}"
+                                    title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <form method="post" class="form-excluir-ajax" style="display:inline;">
+                                    <input type="hidden" name="acao" value="excluir">
+                                    <input type="hidden" name="id" value="${p.id}">
+                                    <input type="hidden" name="is_ajax" value="1">
+                                    <button type="submit" class="btn btn-delete" title="Excluir">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            grade.innerHTML = html;
+            
+            // Reatribuir eventos
+            vincularEventos();
+        } catch (err) {
+            console.error('Erro ao recarregar produtos:', err);
+        }
+    }
+
+    function vincularEventos() {
+        // Editar
+        document.querySelectorAll('.btn-editar').forEach(btn => {
+            btn.addEventListener('click', function(e){
+                e.preventDefault();
+                label.textContent = 'Editar Produto';
+                acao.value = 'editar';
+                document.getElementById('edit-id').value = this.dataset.id;
+                document.getElementById('edit-nome').value = this.dataset.nome;
+                document.getElementById('edit-descricao').value = this.dataset.descricao;
+                document.getElementById('edit-quantidade').value = this.dataset.quantidade;
+                document.getElementById('edit-preco').value = this.dataset.preco;
+                document.getElementById('edit-categoria').value = this.dataset.categoria;
+
+                if (this.dataset.img) {
+                    previewImg.src = this.dataset.img;
+                    previewContainer.style.display = 'block';
+                } else {
+                    previewContainer.style.display = 'none';
+                }
+                abrirModal();
+            });
+        });
+
+        // Excluir via AJAX
+        document.querySelectorAll('.form-excluir-ajax').forEach(formEx => {
+            formEx.onsubmit = async function(e) {
+                e.preventDefault();
+                if(!confirm('Deseja excluir este produto?')) return;
+                
+                const formData = new FormData(this);
+                try {
+                    const resp = await fetch('produtos_vendedor.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const res = await resp.json();
+                    if(res.success) {
+                        recarregarProdutos();
+                    }
+                } catch(err) {
+                    alert('Erro ao excluir produto.');
+                }
+            };
+        });
+    }
+
+    // Submissão do Formulário Principal via AJAX
+    form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        
+        const btn = document.getElementById('btnSalvarProduto');
+        const text = btn.querySelector('.btn-text');
+        const loader = btn.querySelector('.btn-loader');
+        
+        text.classList.add('d-none');
+        loader.classList.remove('d-none');
+        btn.disabled = true;
+
+        const formData = new FormData(this);
+        formData.append('is_ajax', '1');
+
+        try {
+            const resp = await fetch('produtos_vendedor.php', {
+                method: 'POST',
+                body: formData
+            });
+            const res = await resp.json();
+            
+            if(res.success) {
+                fecharModal();
+                recarregarProdutos();
+                // Opcional: Toast de sucesso
+            } else {
+                alert('Erro: ' + (res.message || 'Falha ao salvar.'));
+            }
+        } catch(err) {
+            console.error(err);
+            alert('Erro de conexão ao salvar.');
+        } finally {
+            text.classList.remove('d-none');
+            loader.classList.add('d-none');
+            btn.disabled = false;
+        }
+    });
 
     // Clique no botão Novo Produto
     btnNovo.addEventListener('click', function(e){
@@ -548,29 +907,6 @@ document.addEventListener('DOMContentLoaded', function(){
         abrirModal();
     });
 
-    // Clique no botão Editar
-    editarBtns.forEach(btn => {
-        btn.addEventListener('click', function(e){
-            e.preventDefault();
-            label.textContent = 'Editar Produto';
-            acao.value = 'editar';
-            document.getElementById('edit-id').value = this.dataset.id;
-            document.getElementById('edit-nome').value = this.dataset.nome;
-            document.getElementById('edit-descricao').value = this.dataset.descricao;
-            document.getElementById('edit-quantidade').value = this.dataset.quantidade;
-            document.getElementById('edit-preco').value = this.dataset.preco;
-            document.getElementById('edit-categoria').value = this.dataset.categoria;
-
-            if (this.dataset.img) {
-                previewImg.src = this.dataset.img;
-                previewContainer.style.display = 'block';
-            } else {
-                previewContainer.style.display = 'none';
-            }
-            abrirModal();
-        });
-    });
-
     // Pré-visualização da imagem
     document.getElementById('edit-imagem').addEventListener('change', function(){
         const f = this.files[0];
@@ -580,28 +916,85 @@ document.addEventListener('DOMContentLoaded', function(){
             previewContainer.style.display = 'block';
         }
     });
+
+    // Inicialização
+    vincularEventos();
 });
 </script>
 
 <style>
-/* Mantém o mesmo estilo, apenas corrige exibição do modal sem interferir no CSS */
-.modal {
-    display: none;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0,0,0,0.6);
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 9999;
-}
-.modal.show {
-    display: flex;
-    animation: fadeIn 0.25s ease-in-out;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
+    /* Custom Modal CSS */
+    .custom-modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+        backdrop-filter: blur(5px);
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .custom-modal.open {
+        display: flex; /* Activate flex to center */
+        opacity: 1;
+    }
+
+    .custom-modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px; /* Limit width */
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.9);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh; /* Don't overflow screen height */
+    }
+    
+    .custom-modal.open .custom-modal-content {
+        transform: scale(1);
+    }
+
+    .modal-header-premium {
+        background: linear-gradient(135deg, var(--petroleo) 0%, #034c6a 100%);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .modal-body-custom {
+        padding: 25px 30px;
+        overflow-y: auto;
+    }
+
+    .btn-close-custom {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+    .btn-close-custom:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+    }
 </style>
 
 <?php
@@ -620,7 +1013,7 @@ if (!empty($_GET['edit'])) {
         $jsCategoria = json_encode($productToEdit['categoria_id']);
         $jsImg = json_encode(!empty($productToEdit['imagem']) ? (strpos($productToEdit['imagem'], '/') === 0 ? $productToEdit['imagem'] : '/'.$productToEdit['imagem']) : '');
         echo "<script>document.addEventListener('DOMContentLoaded', function(){\n" .
-             "  document.getElementById('modalProdutoLabel').textContent = 'Editar Produto';\n" .
+             "  document.getElementById('modalProdutoLabel').innerHTML = '<i class=\"fa-solid fa-pen me-3\" style=\"color: var(--dourado);\"></i><span>Editar Produto</span>';\n" .
              "  document.getElementById('acao').value = 'editar';\n" .
              "  document.getElementById('edit-id').value = '" . intval($productToEdit['id']) . "';\n" .
              "  document.getElementById('edit-nome').value = $jsNome;\n" .
@@ -629,7 +1022,7 @@ if (!empty($_GET['edit'])) {
              "  document.getElementById('edit-preco').value = $jsPreco;\n" .
              "  document.getElementById('edit-categoria').value = $jsCategoria;\n" .
              ($productToEdit['imagem'] ? "  document.getElementById('previewImg').src = $jsImg; document.getElementById('previewContainer').style.display = 'block';\n" : '') .
-             "  var modalEl = document.getElementById('modalProduto'); modalEl.style.display = 'flex'; modalEl.classList.add('show'); document.body.style.overflow = 'hidden';\n" .
+             "  abrirModal();\n" .
              "});</script>";
     }
 }

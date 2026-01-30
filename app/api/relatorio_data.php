@@ -2,19 +2,11 @@
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
-// Debug da sessão
-error_log('Debug Sessão - Vendedor ID: ' . ($_SESSION['vendedor_id'] ?? 'não definido'));
-error_log('Debug Sessão - Todas as variáveis: ' . print_r($_SESSION, true));
-
-if(!isset($_SESSION['vendedor_id'])){
+// Verificar se é vendedor ou admin
+if(!isset($_SESSION['vendedor_id']) && !isset($_SESSION['admin_id'])){
     echo json_encode([
         'success' => false,
-        'error' => 'não autorizado',
-        'debug' => [
-            'session_status' => session_status(),
-            'session_id' => session_id(),
-            'session_data' => $_SESSION
-        ]
+        'error' => 'não autorizado'
     ]);
     http_response_code(401);
     exit;
@@ -84,9 +76,6 @@ try{
         'top_produtos'=>$top,
         'vendas_por_vendedor'=>$vendedores
     ];
-
-    // Log dos dados retornados
-    error_log('Debug API - Dados retornados: ' . print_r($response, true));
 
     echo json_encode($response);
 

@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // Envia para o backend
-            const resposta = await fetch('/app/ia/responder.php', {
+            const resposta = await fetch((typeof BASE_URL !== 'undefined' ? BASE_URL : '') + '/app/ia/responder.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

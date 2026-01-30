@@ -47,6 +47,9 @@ try {
 		* { box-sizing:border-box; margin:0; padding:0; }
 		body { font-family:'Segoe UI', sans-serif; background:#f7f8fa; }
 		.main { margin-left:250px; padding:30px; transition:0.3s; }
+		@media (max-width: 768px) {
+			.main { margin-left:0 !important; padding:80px 20px 20px !important; }
+		}
 		.clientes-list { background:white; border-radius:12px; padding:20px; box-shadow:0 3px 10px rgba(0,0,0,0.08); }
 		.cliente-item { padding:12px; border-bottom:1px solid #f0f0f0; display:flex; gap:12px; align-items:center; }
 		.cliente-item:last-child { border-bottom:none; }
@@ -63,15 +66,15 @@ try {
 
 <div class="main">
 	<h2>Clientes que já compraram</h2>
-	<div class="clientes-list">
+	<div class="clientes-list" id="lista-clientes">
 		<?php if (empty($clientes)): ?>
-			<p>Nenhum cliente encontrado.</p>
+			<p class="empty-msg">Nenhum cliente encontrado.</p>
 		<?php else: ?>
 			<?php foreach ($clientes as $c): ?>
 				<div class="cliente-item">
-					<div class="cliente-avatar"><?php echo strtoupper(substr(safe($c['nome'] ?? $c['nome'] ?? 'U'),0,1)); ?></div>
+					<div class="cliente-avatar"><?php echo strtoupper(substr(safe($c['nome'] ?? 'U'),0,1)); ?></div>
 					<div class="cliente-info">
-						<div class="cliente-name"><?php echo safe($c['nome'] ?? $c['name'] ?? 'Nome desconhecido'); ?></div>
+						<div class="cliente-name"><?php echo safe($c['nome'] ?? 'Nome desconhecido'); ?></div>
 						<div class="cliente-meta">
 							<?php if (!empty($c['email'])): ?><?php echo safe($c['email']); ?><?php endif; ?>
 							<?php if (!empty($c['telefone'])): ?><?php if (!empty($c['email'])) echo ' · '; ?><?php echo safe($c['telefone']); ?><?php endif; ?>
@@ -82,6 +85,73 @@ try {
 		<?php endif; ?>
 	</div>
 </div>
+
+<div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:9999;"></div>
+
+<script>
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${type === 'success' ? '#012E40' : '#dc3545'};
+        color: ${type === 'success' ? '#D4AF37' : '#fff'};
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-top: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-weight: 600;
+        animation: slideIn 0.3s ease-out;
+    `;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-in forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Estilos para as animações de toast
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+`;
+document.head.appendChild(style);
+
+function recarregarClientes() {
+    fetch('clientes_vendedor.php?ajax=listar')
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            const container = document.getElementById('lista-clientes');
+            if(data.clientes.length === 0) {
+                container.innerHTML = '<p class="empty-msg">Nenhum cliente encontrado.</p>';
+                return;
+            }
+            let html = '';
+            data.clientes.forEach(c => {
+                const inicial = (c.nome || 'U').substring(0,1).toUpperCase();
+                html += `
+                    <div class="cliente-item">
+                        <div class="cliente-avatar">${inicial}</div>
+                        <div class="cliente-info">
+                            <div class="cliente-name">${c.nome || 'Nome desconhecido'}</div>
+                            <div class="cliente-meta">
+                                ${c.email ? c.email : ''}
+                                ${c.telefone ? (c.email ? ' · ' : '') + c.telefone : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    });
+}
+
+// Polling opcional para clientes (pode ser útil se outros vendedores cadastrarem)
+setInterval(recarregarClientes, 30000); 
+</script>
 
 </body>
 </html>

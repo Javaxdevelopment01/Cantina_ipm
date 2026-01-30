@@ -1,0 +1,8 @@
+{
+    "raw_body_preview": "{\"mensagem\":\"Sanduíche de queijo\",\"audio\":true,\"vendor_context\":{\"pagina\":\"alertas_estoque\"}}",
+    "raw_body_length": 94,
+    "_POST": [],
+    "_GET": [],
+    "content_type": "application\/json",
+    "method": "POST"
+}

@@ -1,0 +1,9 @@
+{
+    "raw_body_preview": "{\"mensagem\":\"Queo algo leve\",\"audio\":true}",
+    "raw_body_length": 42,
+    "_POST": [],
+    "_GET": [],
+    "_REQUEST": [],
+    "content_type": "application\/json; charset=utf-8",
+    "method": "POST"
+}

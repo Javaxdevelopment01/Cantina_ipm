@@ -46,7 +46,7 @@
     ]
   },
   "pedidos": {
-    "novos pedidos|pendentes|atender": [
+    "pedidos|pedido|novos pedidos|pendentes|atender": [
       "Para ver novos pedidos:\n1. O sistema notifica automaticamente\n2. Acesse a seção de pedidos pendentes\n3. Clique para ver detalhes\n4. Marque como atendido após preparar",
       "Gestão de pedidos:\n- Notificações em tempo real\n- Lista organizada por horário\n- Detalhes do cliente e itens\n- Opções de status"
     ],
@@ -64,7 +64,7 @@
     ]
   },
   "vendas": {
-    "relatorio|desempenho|resultado": [
+    "vendas|venda|relatorio|desempenho|resultado": [
       "Para ver relatórios de venda:\n1. Acesse a seção de relatórios\n2. Escolha o período desejado\n3. Veja gráficos e números\n4. Analise tendências",
       "Os relatórios mostram:\n- Total de vendas\n- Produtos mais vendidos\n- Média por período\n- Comparativos"
     ],

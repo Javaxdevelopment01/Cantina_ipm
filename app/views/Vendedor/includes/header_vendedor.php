@@ -8,8 +8,7 @@ $horaData = date('d/m/Y H:i');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Vendedor - Cantina IPM</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <!-- Local styles only: removed external CDN dependencies -->
 <?php
 // Carrega configurações padrão e específicas do vendedor
 $baseSettingsPath = __DIR__ . '/../../../config/settings_vendedor.json';
@@ -97,27 +96,67 @@ if (file_exists($vendedorSettingsPath)) {
 </head>
 <body>
 
+<?php
+// Determine store logo (from settings) and ensure it has a leading slash
+$storeLogo = '';
+if (!empty($s['store']['logo'])) {
+    $rawLogo = $s['store']['logo'];
+    if (strpos($rawLogo, '/') !== 0) {
+        $rawLogo = '/' . ltrim($rawLogo, '/');
+    }
+    $storeLogo = htmlspecialchars($rawLogo, ENT_QUOTES, 'UTF-8');
+}
+$storeName = htmlspecialchars($s['store']['nome'] ?? 'Cantina IPM', ENT_QUOTES, 'UTF-8');
+?>
+
 <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-    <div class="d-flex align-items-center gap-3">
-        <h4 class="m-0" style="color:var(--petroleo)">Cantina IPM</h4>
-        <nav class="nav">
-            <a class="nav-link" href="dashboard_vendedor.php">Dashboard</a>
-            <a class="nav-link" href="pedidos.php">Pedidos</a>
-            <a class="nav-link" href="vendas_vendedor.php">Vendas</a>
-            <a class="nav-link" href="relatorios_vendedor.php">Relatórios</a>
-        </nav>
+    <style>
+    /* header logo styling */
+    .header-logo { width:48px; height:auto; object-fit:contain; border-radius:6px; margin-right:10px; }
+    .header-brand { display:flex; align-items:center; gap:10px; }
+    </style>
+
+    <div class="d-flex align-items-center gap-3 header-brand">
+        <?php if ($storeLogo): ?>
+            <img src="<?= $storeLogo ?>" alt="<?= $storeName ?>" class="header-logo">
+        <?php endif; ?>
+        <div>
+            <h4 class="m-0" style="color:var(--petroleo)"><?= $storeName ?></h4>
+            <nav class="nav">
+                <a class="nav-link" href="dashboard_vendedor.php">Dashboard</a>
+                <a class="nav-link" href="pedidos.php">Pedidos</a>
+                <a class="nav-link" href="vendas_vendedor.php">Vendas</a>
+                <a class="nav-link" href="relatorios_vendedor.php">Relatórios</a>
+            </nav>
+        </div>
     </div>
     <div class="d-flex align-items-center gap-3">
         <span class="text-muted"><?= $horaData ?></span>
-        <a href="logout.php" class="btn btn-outline-danger btn-sm">
-            <i class="fas fa-sign-out-alt"></i> Sair
+        <a href="logout.php" class="btn btn-logout" style="background:transparent;border:1px solid var(--petroleo);color:var(--petroleo);padding:6px 10px;border-radius:6px;text-decoration:none;">
+            <!-- simple inline logout icon (SVG) -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:6px;">
+                <path d="M16 17L21 12L16 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Sair
         </a>
     </div>
 </div>
 
 <div class="notification" id="notification">
-    <i class="fas fa-bell me-2"></i>
+    <!-- simple bell icon SVG -->
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:6px;">
+        <path d="M15 17H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
     <span id="notification-text"></span>
 </div>
+
+<?php
+// Include the vendor sidebar here so pages that load this header will have the lateral menu
+include __DIR__ . '/menu_vendedor.php';
+?>
 
 <script src="/assets/js/pedido-notificacoes.js"></script>

@@ -37,13 +37,17 @@ function initAI() {
   // Função para enviar mensagem para a IA
   async function sendMessage(message) {
     try {
-      const response = await fetch("/app/ia/responder.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ mensagem: message }),
-      });
+      const response = await fetch(
+        (typeof BASE_URL !== "undefined" ? BASE_URL : "") +
+          "/app/ia/responder.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ mensagem: message }),
+        }
+      );
 
       const data = await response.json();
 
@@ -73,13 +77,17 @@ function initAI() {
 
   // Verifica produtos com estoque baixo periodicamente
   async function checkLowStock() {
-    const response = await fetch("/app/ia/responder.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mensagem: "verificar estoque" }),
-    });
+    const response = await fetch(
+      (typeof BASE_URL !== "undefined" ? BASE_URL : "") +
+        "/app/ia/responder.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mensagem: "verificar estoque" }),
+      }
+    );
 
     const data = await response.json();
     if (data.texto && !speaking) {

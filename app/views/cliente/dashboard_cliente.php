@@ -9,10 +9,20 @@ session_start();
 // ---------------------------
 // CONFIGURAÇÃO
 // ---------------------------
-define('BASE_URL', 'http://cantina-ipm'); // ajusta se necessário
+// Determina o BASE_URL dinamicamente (localhost ou servidor)
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+// Remove porta se for a padrão
+if (strpos($host, ':80') === strlen($host) - 3 && $protocol === 'http') {
+    $host = substr($host, 0, -3);
+}
+if (strpos($host, ':443') === strlen($host) - 4 && $protocol === 'https') {
+    $host = substr($host, 0, -4);
+}
+define('BASE_URL', $protocol . '://' . $host);
 
 // Obtém a chave da environment (mais seguro). Em dev, podes definir via servidor.
-
+$OPENAI_API_KEY = getenv('OPENAI_API_KEY') ?: '';
 
 // INCLUDES (ajusta caminhos conforme a tua estrutura)
 $produtoModel = __DIR__ . '/../../../app/Models/Produto.php';
@@ -234,8 +244,25 @@ function publicImageUrl($imgField) {
     <meta charset="utf-8">
     <title>Cardápio - Cantina IPM</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <!-- CSS Responsivo Global -->
+    <link href="<?php echo rtrim(BASE_URL, '/'); ?>/assets/css/responsive.css" rel="stylesheet">
+    <?php
+    // Prefer local vendor files under /assets/vendor if present, otherwise fall back to CDN
+    $localBootstrap = rtrim(BASE_URL, '/') . '/assets/vendor/bootstrap/css/bootstrap.min.css';
+    $localFA = rtrim(BASE_URL, '/') . '/assets/vendor/fontawesome/css/all.min.css';
+    $localBootstrapFile = __DIR__ . '/../../assets/vendor/bootstrap/css/bootstrap.min.css';
+    $localFAFile = __DIR__ . '/../../assets/vendor/fontawesome/css/all.min.css';
+    if (file_exists($localBootstrapFile)) {
+        echo '<link href="' . $localBootstrap . '" rel="stylesheet">\n';
+    } else {
+        echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">\n';
+    }
+    if (file_exists($localFAFile)) {
+        echo '<link href="' . $localFA . '" rel="stylesheet">\n';
+    } else {
+        echo '<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">\n';
+    }
+    ?>
     <style>
     :root { --petroleo:#012E40; --dourado:#D4AF37; --bg:#f7f8fa; }
     html,body{ height:100%; }
@@ -254,10 +281,19 @@ function publicImageUrl($imgField) {
     .btn-add:hover{ opacity:.95; transform:translateY(-2px); }
     #carrinhoBtn{ position:fixed; right:30px; bottom:120px; z-index:9999; background:var(--dourado); color:var(--petroleo); border-radius:50%; width:62px; height:62px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(1,46,64,0.12); border:none; }
     #carrinhoBadge{ position:absolute; top:-6px; right:-6px; background:#dc3545; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
-    #iaAssistente{ position:fixed; right:30px; bottom:30px; width:340px; background:#fff; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.12); display:none; z-index:9999; overflow:hidden; }
-    #iaAssistente .header{ background:var(--petroleo); color:var(--dourado); padding:10px 12px; display:flex; align-items:center; justify-content:space-between; }
-    #iaAssistente .body{ padding:12px; max-height:240px; overflow:auto; background:#fff; }
-    #iaAssistente .footer{ padding:8px; border-top:1px solid #eee; background:#fff; }
+    /* YASMIN Widget Styles */
+    #yasminWidget{ position:fixed; right:30px; bottom:30px; width:360px; background:#fff; border-radius:12px; box-shadow:0 12px 40px rgba(1,46,64,0.15); display:flex; flex-direction:column; z-index:9999; overflow:hidden; opacity:0; visibility:hidden; transform:translateY(20px); transition:all 0.3s ease-out; pointer-events:none; }
+    #yasminWidget.active{ opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto; animation:slideUpIn 0.3s ease-out; }
+    .yasmin-header{ background:linear-gradient(135deg, var(--petroleo), #0d5c7a); color:var(--dourado); padding:14px; display:flex; align-items:center; justify-content:space-between; }
+    .yasmin-title{ font-weight:700; font-size:1rem; display:flex; align-items:center; gap:8px; }
+    .yasmin-body{ padding:16px; max-height:300px; overflow-y:auto; background:#f9fafb; }
+    .yasmin-message{ padding:10px 12px; border-radius:8px; margin-bottom:10px; font-size:0.95rem; line-height:1.4; }
+    .yasmin-message.yasmin-bot{ background:#e8f0f6; color:#1f2937; border-left:3px solid var(--petroleo); }
+    .yasmin-message.yasmin-user{ background:var(--dourado); color:var(--petroleo); margin-left:20px; text-align:right; }
+    .yasmin-footer{ padding:12px; border-top:1px solid #e5e7eb; background:#fff; }
+    .yasmin-footer .input-group-sm .form-control{ font-size:0.9rem; }
+    .yasmin-footer button{ font-size:0.9rem; }
+    @keyframes slideUpIn{ from{ transform:translateY(20px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
     .modal-header.bg-accent{ background:var(--petroleo); color:var(--dourado); border-bottom:0; }
     .payment-method{ cursor:pointer; border-radius:8px; padding:10px; border:1px solid #eee; text-align:center; user-select:none; }
     .payment-method.active{ box-shadow:0 6px 18px rgba(1,46,64,0.06); border-color:var(--petroleo); }
@@ -377,26 +413,33 @@ function publicImageUrl($imgField) {
   </div>
 </div>
 
-<!-- IA bubble -->
-<div id="iaAssistente" aria-hidden="true">
-    <div class="header">
-        <div>Assistente GIA</div>
-        <button class="btn btn-sm btn-light" id="closeIA"><i class="fa-solid fa-xmark"></i></button>
+<!-- YASMIN Assistant Widget -->
+<div id="yasminWidget">
+    <div class="yasmin-header">
+        <div class="yasmin-title">
+            <i class="fa-solid fa-sparkles"></i> YASMIN
+        </div>
+        <button class="btn btn-sm btn-light" id="closeYasmin" title="Fechar"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="body" id="iaBody">
-        <div class="text-muted small">Olá! Posso ajudar a escolher produtos ou finalizar pedidos.</div>
+    <div class="yasmin-body" id="yasminBody">
+        <div class="yasmin-message yasmin-bot">
+            Olá! Sou a YASMIN, tua assistente virtual.<br/>
+            Estou aqui para ajudarte a escolher o melhor produto para ti!
+        </div>
     </div>
-    <div class="footer">
-        <div class="input-group">
-            <input id="iaInput" class="form-control form-control-sm" placeholder="Pergunta à assistente...">
-            <button id="iaSend" class="btn btn-sm btn-success">Enviar</button>
-            <button id="iaVoice" class="btn btn-sm btn-outline-primary" title="Falar com a assistente"><i class="fa-solid fa-microphone"></i></button>
+    <div class="yasmin-footer">
+        <div class="input-group input-group-sm">
+            <button id="yasminMic" class="btn btn-outline-secondary" title="Falar" type="button" style="min-width:42px;"><i class="fa-solid fa-microphone"></i></button>
+            <input id="yasminInput" class="form-control" placeholder="Ex: 'Quero algo saudável'..." />
+            <button id="yasminSend" class="btn btn-success" title="Enviar"><i class="fa-solid fa-paper-plane"></i></button>
+            <button id="yasminPlayToggle" class="btn btn-outline-primary" title="Ouvir respostas" type="button" style="min-width:42px; margin-left:6px;"><i class="fa-solid fa-volume-high"></i></button>
         </div>
     </div>
 </div>
 
-<button id="botaoIA" title="Abrir assistente" style="position:fixed; right:30px; bottom:30px; width:56px; height:56px; border-radius:50%; background:var(--petroleo); color:var(--dourado); border:none; z-index:9998">
-    <i class="fa-solid fa-comments"></i>
+<button id="botaoYasmin" title="Abrir assistente YASMIN" 
+    style="position:fixed; right:30px; bottom:30px; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--petroleo), #0d5c7a); color:var(--dourado); border:none; z-index:9998; box-shadow:0 8px 24px rgba(1,46,64,0.2); cursor:pointer; font-size:24px; transition:transform 0.2s, box-shadow 0.2s;">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
 </button>
 
 <?php
@@ -589,120 +632,325 @@ if (file_exists($footerPath)) include_once $footerPath;
     });
 
     // ---------------------------
-    // IA: Painel, envio de mensagens e voz
+    // YASMIN: Assistente Virtual para Escolha de Produtos
     // ---------------------------
-    const iaBtn = document.getElementById('botaoIA');
-    const iaPanel = document.getElementById('iaAssistente');
-    const closeIA = document.getElementById('closeIA');
-    const iaBody = document.getElementById('iaBody');
-    const iaInput = document.getElementById('iaInput');
-    const iaSend = document.getElementById('iaSend');
-    const iaVoiceBtn = document.getElementById('iaVoice');
+    const yasminBtn = document.getElementById('botaoYasmin');
+    const yasminWidget = document.getElementById('yasminWidget');
+    const closeYasminBtn = document.getElementById('closeYasmin');
+    const yasminBody = document.getElementById('yasminBody');
+    const yasminInput = document.getElementById('yasminInput');
+    const yasminSend = document.getElementById('yasminSend');
+    
+    let yasminAtivo = false;
 
-    function appendIaMsg(txt, mine=false){
-        const d = document.createElement('div');
-        d.className = (mine ? 'text-end text-primary small mb-2' : 'text-start text-muted small mb-2');
-        d.textContent = txt;
-        iaBody.appendChild(d);
-        iaBody.scrollTop = iaBody.scrollHeight;
+    function abrirYasmin() {
+        yasminWidget.classList.add('active');
+        yasminAtivo = true;
+        yasminInput.focus();
     }
 
-    function speak(txt){
-        if ('speechSynthesis' in window) {
-            const u = new SpeechSynthesisUtterance(txt);
-            u.lang = 'pt-PT';
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(u);
-        }
+    function fecharYasmin() {
+        // Blur input first to avoid focused element being hidden (accessibility)
+        try { yasminInput.blur(); } catch (e) {}
+        yasminWidget.classList.remove('active');
+        yasminAtivo = false;
     }
 
-    async function sendIaMessage(){
-        const msg = iaInput.value.trim();
+    function addYasminMessage(texto, isUser = false) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `yasmin-message ${isUser ? 'yasmin-user' : 'yasmin-bot'}`;
+        msgDiv.innerHTML = texto; // Permite HTML (para bold, etc)
+        yasminBody.appendChild(msgDiv);
+        yasminBody.scrollTop = yasminBody.scrollHeight;
+    }
+
+    async function enviarYasminMessage() {
+        const msg = yasminInput.value.trim();
         if (!msg) return;
-        appendIaMsg(msg, true);
-        iaInput.value = '';
+
+        addYasminMessage(msg, true);
+        yasminInput.value = '';
+        yasminInput.focus();
+
+        // Mostra "digitando..."
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'yasmin-message yasmin-bot';
+        typingDiv.innerHTML = '<em>YASMIN está a escrever...</em>';
+        yasminBody.appendChild(typingDiv);
+
         try {
-            const resp = await fetch(location.href, {
+            // SEMPRE pede áudio ao servidor - envia JSON (PHP lê php://input)
+            let resp = await fetch(BASE_URL + '/app/api/yasmin_api.php', {
                 method: 'POST',
-                headers: { 'Content-Type':'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ action:'ia_chat', message: msg })
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({ mensagem: msg, audio: true })
             });
-            const data = await resp.json();
+
+            // Remove mensagem "digitando" imediatamente
+            typingDiv.remove();
+
+            // Lê a resposta como texto primeiro (para debug)
+            let textResp = await resp.text();
+            console.log('[YASMIN] Resposta bruta:', textResp.substring(0, 200));
+
+            // If server rejects JSON (some proxies/mod_security), retry as urlencoded form
+            if (!resp.ok) {
+                console.warn('[YASMIN] JSON POST failed, attempting urlencoded fallback (form)');
+                try {
+                    const form = new URLSearchParams();
+                    form.append('mensagem', msg);
+                    form.append('audio', '1');
+                    const resp2 = await fetch(BASE_URL + '/app/api/yasmin_api.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+                        body: form.toString()
+                    });
+                    textResp = await resp2.text();
+                    console.log('[YASMIN] Fallback resposta bruta:', textResp.substring(0,200));
+                    if (!resp2.ok) {
+                        addYasminMessage(`Erro HTTP ${resp2.status}: ${textResp}`, false);
+                        console.error('HTTP Error fallback:', resp2.status, textResp);
+                        return;
+                    }
+                    resp = resp2; // proceed with successful response
+                } catch (e2) {
+                    addYasminMessage(`Erro de comunicação (fallback): ${e2.message}`, false);
+                    console.error('[YASMIN] Fallback error:', e2);
+                    return;
+                }
+            }
+
+            // Parse response text
+            const textRespFinal = textResp;
+
+            // Tenta parsear como JSON
+            let data;
+            try {
+                data = JSON.parse(textRespFinal);
+            } catch (e) {
+                addYasminMessage(`Erro ao processar resposta: ${e.message}`, false);
+                console.error('[YASMIN] JSON Parse error:', e, 'Raw:', textRespFinal);
+                return;
+            }
+
             if (data.success) {
-                appendIaMsg(data.reply, false);
-                speak(data.reply);
+                // Formata resposta com recomendações
+                let resposta = data.mensagem || 'Desculpa, não consegui processar.';
+                
+                // Se há recomendações, adiciona botão "Adicionar" para cada produto
+                if (data.recomendacoes && Array.isArray(data.recomendacoes)) {
+                    resposta += '<div class="mt-2">';
+                    data.recomendacoes.forEach(prod => {
+                        resposta += `<div style="font-size:0.85rem; padding:8px; background:#fff; border-radius:6px; margin-bottom:6px; border-left:3px solid var(--dourado);">
+                            <strong>${prod.nome}</strong><br/>
+                            <small>Kz ${prod.preco.toFixed(2)}</small>
+                            <button class="btn btn-xs btn-success ms-2" style="padding:2px 8px; font-size:0.75rem;" data-id="${prod.id}" data-name="${prod.nome}" data-price="${prod.preco}" data-img="${prod.imagem || ''}">
+                                Adicionar
+                            </button>
+                        </div>`;
+                    });
+                    resposta += '</div>';
+                }
+                
+                addYasminMessage(resposta, false);
+
+                // se existir áudio em base64, reproduz
+                if (data.audio_base64) {
+                    try {
+                        const audioBytes = atob(data.audio_base64);
+                        const len = audioBytes.length;
+                        const bytes = new Uint8Array(len);
+                        for (let i = 0; i < len; i++) bytes[i] = audioBytes.charCodeAt(i);
+                        const mimeType = data.audio_mime || 'audio/mpeg';
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const url = URL.createObjectURL(blob);
+                        const audio = new Audio(url);
+                        
+                        // Guarda referência do áudio atual
+                        currentAudio = audio;
+                        isAudioPlaying = false;
+                        
+                        // Adiciona listeners para controlo
+                        audio.addEventListener('play', () => {
+                            isAudioPlaying = true;
+                            yasminPlayToggle.classList.add('active');
+                            yasminPlayToggle.style.background = 'var(--petroleo)';
+                            yasminPlayToggle.style.color = 'var(--dourado)';
+                        });
+                        
+                        audio.addEventListener('pause', () => {
+                            isAudioPlaying = false;
+                            yasminPlayToggle.classList.remove('active');
+                            yasminPlayToggle.style.background = '';
+                            yasminPlayToggle.style.color = '';
+                        });
+                        
+                        audio.addEventListener('ended', () => {
+                            isAudioPlaying = false;
+                            yasminPlayToggle.classList.remove('active');
+                            yasminPlayToggle.style.background = '';
+                            yasminPlayToggle.style.color = '';
+                        });
+                        
+                        // Garante que o áudio está pronto antes de reproduzir
+                        audio.addEventListener('canplay', () => {
+                            audio.play().catch(e => {
+                                console.warn('[YASMIN Audio] Autoplay bloqueado:', e.message);
+                            });
+                        });
+                        
+                        // Define um timeout para reproducao forçada se o evento não disparar
+                        setTimeout(() => {
+                            if (audio.paused && currentAudio === audio) {
+                                audio.play().catch(e => console.warn('[YASMIN Audio] Erro ao reproduzir:', e.message));
+                            }
+                        }, 500);
+                        
+                        console.log('[YASMIN Audio] Áudio pronto:', mimeType);
+                    } catch (e) {
+                        console.warn('[YASMIN Audio] Erro ao processar audio_base64:', e);
+                    }
+                }
+
+                // Adiciona event listeners aos botões de "Adicionar"
+                yasminBody.querySelectorAll('button[data-id]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const id = btn.dataset.id;
+                        const name = btn.dataset.name;
+                        const price = parseFloat(btn.dataset.price) || 0;
+                        const img = btn.dataset.img || '';
+                        
+                        const idx = cart.findIndex(c => c.id == id);
+                        if (idx >= 0) cart[idx].qty++;
+                        else cart.push({ id, name, price, qty: 1, img });
+                        updateBadge();
+                        
+                        // Feedback visual
+                        const oldHtml = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> Adicionado!';
+                        btn.disabled = true;
+                        setTimeout(() => {
+                            btn.innerHTML = oldHtml;
+                            btn.disabled = false;
+                        }, 1200);
+                        
+                        addYasminMessage(`Ótimo! Adicionaste "${name}" ao carrinho!`, true);
+                    });
+                });
             } else {
-                appendIaMsg('Erro: ' + (data.error || 'sem resposta'), false);
+                const errorMsg = data.error || 'Falha desconhecida';
+                console.error('YASMIN Error:', errorMsg, data);
+                addYasminMessage(`Erro: ${errorMsg}`, false);
             }
         } catch (err) {
-            appendIaMsg('Erro de comunicação com a IA.', false);
-            console.error('Erro IA:', err);
+            typingDiv.remove();
+            console.error('[YASMIN] Erro:', err.message);
+            console.error('[YASMIN] URL tentada:', BASE_URL + '/app/api/yasmin_api.php');
+            addYasminMessage('Erro de comunicação. Verifica a consola (F12) para mais detalhes.', false);
         }
     }
 
-    iaSend.addEventListener('click', sendIaMessage);
-    iaInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendIaMessage(); });
+    // Event listeners YASMIN
+    yasminBtn.addEventListener('click', abrirYasmin);
+    closeYasminBtn.addEventListener('click', fecharYasmin);
+    yasminSend.addEventListener('click', enviarYasminMessage);
+    yasminInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') enviarYasminMessage();
+    });
 
-    // Reconhecimento de voz (SpeechRecognition)
-    function initSpeechRecognition(){
-        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-            appendIaMsg('Reconhecimento de voz não suportado neste navegador.', false);
+    // Microfone (Web Speech API) - preenche input com transcrição
+    const yasminMic = document.getElementById('yasminMic');
+    const yasminPlayToggle = document.getElementById('yasminPlayToggle');
+    
+    // Guarda o áudio atual para controlo pelo toggle
+    let currentAudio = null;
+    let isAudioPlaying = false;
+    
+    let recognition = null;
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR();
+        recognition.lang = 'pt-PT';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.addEventListener('result', (e) => {
+            const text = e.results[0][0].transcript;
+            yasminInput.value = text;
+            yasminInput.focus();
+        });
+        
+        recognition.addEventListener('error', (e) => {
+            const errorMap = {
+                'no-speech': 'Nenhuma voz detectada. Tenta novamente.',
+                'audio-capture': 'Nenhum microfone disponível.',
+                'network': 'Problema de conexão.',
+                'not-allowed': 'Permissão de microfone negada. Verifica as definições do navegador.',
+                'service-not-allowed': 'Serviço de reconhecimento de voz não disponível neste navegador.'
+            };
+            const msg = errorMap[e.error] || `Erro de voz: ${e.error}`;
+            console.warn('[YASMIN Mic]', msg);
+            // Silenciosa - não interrompe a experiência, apenas volta ao input manual
+            yasminMic.style.opacity = '0.6';
+            setTimeout(() => { yasminMic.style.opacity = '1'; }, 500);
+        });
+        
+        recognition.addEventListener('end', () => {
+            yasminMic.style.opacity = '1';
+        });
+    } else {
+        yasminMic.style.display = 'none';
+    }
+
+    yasminMic.addEventListener('click', () => {
+        if (!recognition) {
+            console.warn('[YASMIN] Web Speech API não suportado neste navegador.');
             return;
         }
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const rec = new SR();
-        rec.lang = 'pt-PT';
-        rec.interimResults = false;
-        rec.maxAlternatives = 1;
-
-        iaVoiceBtn.addEventListener('click', () => {
-            try {
-                rec.start();
-                iaVoiceBtn.classList.add('active');
-                iaVoiceBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
-            } catch (e) { console.error(e); }
-        });
-
-        rec.onresult = (e) => {
-            const text = e.results[0][0].transcript;
-            iaInput.value = text;
-            sendIaMessage();
-            iaVoiceBtn.classList.remove('active');
-            iaVoiceBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-        };
-
-        rec.onerror = (ev) => {
-            iaVoiceBtn.classList.remove('active');
-            iaVoiceBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-            appendIaMsg('Erro no reconhecimento de voz.', false);
-            console.error('Speech recognition error', ev);
-        };
-    }
-
-    iaBtn.addEventListener('click', async ()=>{
-        iaPanel.style.display = 'block';
-        const saudacao = "Olá, seja bem-vindo ao Cardápio digital da Cantina. Eu sou a GIA, a tua assistente.";
-        appendIaMsg(saudacao, false);
-        speak(saudacao);
-
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-                initSpeechRecognition();
-            } catch (err) {
-                appendIaMsg('Permissão de microfone negada. Podes usar o chat de texto.', false);
-            }
-        } else {
-            appendIaMsg('Reconhecimento de voz não suportado neste navegador.', false);
+        try {
+            yasminMic.style.opacity = '0.5';
+            recognition.start();
+        } catch (e) {
+            console.warn('Speech recognition start failed', e);
+            yasminMic.style.opacity = '1';
         }
     });
 
-    closeIA.addEventListener('click', ()=> iaPanel.style.display = 'none');
+    // Toggle play audio - controla a reprodução do áudio atual
+    yasminPlayToggle.addEventListener('click', () => {
+        if (!currentAudio) {
+            console.log('[YASMIN] Sem áudio para reproduzir');
+            return;
+        }
+        
+        if (isAudioPlaying) {
+            // Está a tocar - pausa
+            currentAudio.pause();
+            console.log('[YASMIN] Áudio pausado');
+        } else {
+            // Não está a tocar - reproduz
+            currentAudio.play().catch(e => {
+                console.error('[YASMIN] Erro ao reproduzir:', e);
+            });
+            console.log('[YASMIN] Áudio a reproduzir');
+        }
+    });
+
+    // Mostra YASMIN ao primeiro click
+    yasminBtn.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.1)';
+    });
+    yasminBtn.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+    });
 
     // Função para inicializar badge e estado
     updateBadge();
 
 })();
 </script>
+<!-- JavaScript Responsivo Global -->
+<script src="<?php echo rtrim(BASE_URL, '/'); ?>/assets/js/responsive.js"></script>
 </body>
 </html>

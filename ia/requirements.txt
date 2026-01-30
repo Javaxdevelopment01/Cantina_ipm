@@ -1,0 +1,6 @@
+# requests for OpenAI-compatible calls
+requests==2.31.0
+# TTS options: gTTS (online, melhor qualidade) ou pyttsx3 (offline, rápido)
+gTTS==2.5.4
+pyttsx3==2.90
+# opcional: outras dependências

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Pagamento - Exemplo</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+  </head>
+  <body>
+    <h1>Pagamento Exemplo</h1>
+    <label>Valor (AOA): <input id="amount" value="1000" /></label>
+    <button id="pay">Pagar</button>
+    <pre id="output"></pre>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "REPLACE_ME",
+        authDomain: "REPLACE_ME",
+        projectId: "REPLACE_ME",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const functions = firebase.functions();
+      const db = firebase.firestore();
+
+      async function createPayment(amount) {
+        const createPayment = functions.httpsCallable("createPayment");
+        const resp = await createPayment({ amount });
+        return resp.data;
+      }
+
+      document.getElementById("pay").addEventListener("click", async () => {
+        const amount = Number(document.getElementById("amount").value);
+        document.getElementById("output").textContent = "Criando pagamento...";
+        try {
+          const res = await createPayment(amount);
+          document.getElementById("output").textContent = JSON.stringify(
+            res,
+            null,
+            2
+          );
+
+          // Listen for updates
+          const paymentId = res.paymentId;
+          db.collection("payments")
+            .doc(paymentId)
+            .onSnapshot((snap) => {
+              if (!snap.exists) return;
+              document.getElementById("output").textContent = JSON.stringify(
+                snap.data(),
+                null,
+                2
+              );
+            });
+        } catch (e) {
+          document.getElementById("output").textContent = String(e);
+        }
+      });
+    </script>
+  </body>
+</html>
